@@ -552,6 +552,62 @@
       ]
     },
     {
+      "name": "My Quota API (USER)",
+      "description": "Endpoint untuk USER mengakses kuota client-nya sendiri. ClientId diambil otomatis dari data user yang sedang login (JWT token), sehingga USER hanya bisa melihat kuota miliknya sendiri. Bisa diakses oleh role ADMIN dan USER.",
+      "item": [
+        {
+          "name": "Get My Quotas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/my-quotas",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "my-quotas"
+              ]
+            },
+            "description": "Mengambil semua kuota (PM & CM) untuk client milik user yang sedang login. Mengembalikan daftar kuota per tahun. Jika user tidak terkait dengan client (misalnya ADMIN tanpa client), mengembalikan array kosong."
+          }
+        },
+        {
+          "name": "Get My Quota by Year",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/my-quotas/year/2026",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "my-quotas",
+                "year",
+                "2026"
+              ]
+            },
+            "description": "Mengambil kuota (PM & CM) untuk client milik user yang sedang login, untuk tahun tertentu. Mengembalikan detail kuota termasuk pmQuota, cmQuota, pmUsed, cmUsed."
+          }
+        }
+      ]
+    },
+    {
       "name": "Ticket API",
       "item": [
         {
