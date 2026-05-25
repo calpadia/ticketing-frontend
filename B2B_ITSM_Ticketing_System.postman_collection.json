@@ -265,7 +265,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyName\": \"PT Contoh Perusahaan\"\n}"
+              "raw": "{\n  \"companyName\": \"PT Contoh Perusahaan\",\n  \"contactPersonName\": \"Budi Santoso\",\n  \"contactPersonEmail\": \"budi@contoh.com\",\n  \"contactPersonPhone\": \"08123456789\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/clients",
@@ -343,7 +343,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"companyName\": \"PT Contoh Updated\"\n}"
+              "raw": "{\n  \"companyName\": \"PT Contoh Updated\",\n  \"contactPersonName\": \"Siti Rahayu\",\n  \"contactPersonEmail\": \"siti@contoh.com\",\n  \"contactPersonPhone\": \"08198765432\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/v1/clients/1",
