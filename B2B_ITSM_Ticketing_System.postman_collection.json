@@ -555,7 +555,72 @@
       "name": "Ticket API",
       "item": [
         {
-          "name": "Create Ticket",
+          "name": "Create Ticket (with Attachment)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Server tidak bisa diakses",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Server produksi down sejak pukul 10:00 WIB",
+                  "type": "text"
+                },
+                {
+                  "key": "priority",
+                  "value": "L1",
+                  "type": "text"
+                },
+                {
+                  "key": "maintenanceType",
+                  "value": "CM",
+                  "type": "text"
+                },
+                {
+                  "key": "clientId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "requesterId",
+                  "value": "1",
+                  "type": "text"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": [],
+                  "description": "(Optional) Pilih file lampiran pendukung. Bisa multiple file."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tickets"
+              ]
+            },
+            "description": "Buat ticket baru dengan lampiran file (optional). Gunakan form-data. Field 'files' bisa dikosongkan jika tidak ada lampiran."
+          }
+        },
+        {
+          "name": "Create Ticket (JSON - tanpa Attachment)",
           "request": {
             "method": "POST",
             "header": [
@@ -582,7 +647,8 @@
                 "v1",
                 "tickets"
               ]
-            }
+            },
+            "description": "Buat ticket baru tanpa lampiran menggunakan JSON body. Backward compatible dengan API lama."
           }
         },
         {
@@ -655,6 +721,124 @@
                 "TKT-20260522-001"
               ]
             }
+          }
+        },
+        {
+          "name": "Update Ticket Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"IN_PROGRESS\",\n  \"changedBy\": 1,\n  \"notes\": \"Mulai dikerjakan oleh tim teknis\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/1/status",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tickets",
+                "1",
+                "status"
+              ]
+            },
+            "description": "Update status ticket. Transisi yang valid:\n- OPEN → IN_PROGRESS\n- IN_PROGRESS → RESOLVED / CLOSED\n- RESOLVED → CLOSED / IN_PROGRESS (reopen)\n- CLOSED → (tidak bisa diubah)\n\nSetiap perubahan status otomatis dicatat di progress log."
+          }
+        },
+        {
+          "name": "Get Ticket Progress Log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/1/progress",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "tickets",
+                "1",
+                "progress"
+              ]
+            },
+            "description": "Mengambil riwayat perubahan status ticket (progress log). Diurutkan berdasarkan waktu perubahan (ascending)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Attachment API",
+      "description": "Endpoint untuk mengelola lampiran file pada ticket.",
+      "item": [
+        {
+          "name": "Get Attachments by Ticket ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/attachments/ticket/1",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "attachments",
+                "ticket",
+                "1"
+              ]
+            },
+            "description": "Mengambil daftar semua lampiran untuk ticket tertentu berdasarkan ticket ID."
+          }
+        },
+        {
+          "name": "Download Attachment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/attachments/1/download",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "attachments",
+                "1",
+                "download"
+              ]
+            },
+            "description": "Download file lampiran berdasarkan attachment ID."
           }
         }
       ]
