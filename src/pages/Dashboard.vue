@@ -72,12 +72,14 @@ import { ref, computed, onMounted } from 'vue'
 import { getTickets } from '../api/tickets'
 import { getClients } from '../api/clients'
 import { getUsers } from '../api/users'
+import { useAuthStore } from '../stores/auth'
 import { Building2, Users as UsersIcon, Ticket } from 'lucide-vue-next'
 import StatCard from '../components/StatCard.vue'
 import BarItem from '../components/BarItem.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import PriorityBadge from '../components/PriorityBadge.vue'
 
+const auth = useAuthStore()
 const tickets = ref([])
 const clients = ref([])
 const users = ref([])
@@ -89,15 +91,10 @@ const closedCount = computed(() => tickets.value.filter(t => t.status === 'CLOSE
 const recentTickets = computed(() => [...tickets.value].reverse().slice(0, 5))
 
 onMounted(async () => {
-  try {
-    const [tRes, cRes, uRes] = await Promise.all([getTickets(), getClients(), getUsers()])
-    tickets.value = tRes.data
-    clients.value = cRes.data
-    users.value = uRes.data
-  } catch {
-    tickets.value = []
-    clients.value = []
-    users.value = []
+  try { const res = await getTickets(); tickets.value = res.data } catch { tickets.value = [] }
+  if (auth.isAdmin) {
+    try { const res = await getClients(); clients.value = res.data } catch { clients.value = [] }
+    try { const res = await getUsers(); users.value = res.data } catch { users.value = [] }
   }
 })
 </script>

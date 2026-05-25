@@ -30,6 +30,10 @@
               <option value="ADMIN">Admin</option>
             </select>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <input v-model="form.phone" type="tel" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="08123456789" />
+          </div>
           <button type="submit" :disabled="loading" class="w-full bg-blue-600 text-white py-2.5 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 font-medium">
             {{ loading ? 'Creating account...' : 'Create Account' }}
           </button>
@@ -49,7 +53,7 @@ import { Ticket } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
-const form = reactive({ name: '', email: '', password: '', role: 'USER' })
+const form = reactive({ name: '', email: '', password: '', role: 'USER', phone: '', clientId: '' })
 const error = ref('')
 const loading = ref(false)
 
@@ -62,7 +66,7 @@ async function handleSubmit() {
     router.push('/')
   } catch (err) {
     if (!err.response) {
-      auth.loginUser({ token: 'demo-token', id: 1, name: form.name, email: form.email, role: form.role })
+      auth.loginUser({ token: 'demo-token', id: 1, name: form.name, email: form.email, phone: form.phone, role: form.role })
       router.push('/')
       return
     }

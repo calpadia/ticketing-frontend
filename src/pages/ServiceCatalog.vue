@@ -1,5 +1,6 @@
 <template>
   <div>
+    <ConfirmDialog ref="confirmDialog" />
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-2xl font-bold text-gray-900">Service Catalog</h2>
@@ -16,7 +17,7 @@
       <div v-if="error" class="text-red-600 text-sm mb-3 bg-red-50 p-2 rounded">{{ error }}</div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Client *</label>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Client *</label>
           <select v-model="form.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             <option value="">Select client</option>
             <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
@@ -40,7 +41,7 @@
           <textarea v-model="form.notes" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Optional notes about the service agreement"></textarea>
         </div>
       </div>
-      <button type="submit" class="mt-4 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 font-medium">
+      <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
         {{ editingId !== null ? 'Update' : 'Add Service' }}
       </button>
     </form>
@@ -99,6 +100,9 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { getClients } from '../api/clients'
 import { Search, Plus, X, Pencil, Trash2 } from 'lucide-vue-next'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
+
+const confirmDialog = ref(null)
 
 const clients = ref([])
 const catalog = ref([])
@@ -178,8 +182,9 @@ function handleSubmit() {
   error.value = ''
 }
 
-function handleDelete(id) {
-  if (!confirm('Are you sure you want to delete this service entry?')) return
+async function handleDelete(id) {
+  const confirmed = await confirmDialog.value.open({ title: 'Hapus Service', message: 'Apakah kamu yakin ingin menghapus service entry ini?' })
+  if (!confirmed) return
   catalog.value = catalog.value.filter(item => item.id !== id)
   saveCatalog()
 }

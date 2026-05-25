@@ -17,7 +17,10 @@
         ]"
       >
         <component :is="item.icon" class="w-5 h-5" />
-        <span class="font-medium">{{ item.label }}</span>
+        <span class="font-medium flex-1">{{ item.label }}</span>
+        <span v-if="item.to === '/chat' && totalUnread > 0" class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+          {{ totalUnread > 99 ? '99+' : totalUnread }}
+        </span>
       </router-link>
     </nav>
 
@@ -51,17 +54,22 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { LayoutDashboard, Ticket, Building2, ClipboardList, Users, FileBarChart, LogOut, BookOpen } from 'lucide-vue-next'
+import { useNotificationStore } from '../stores/notifications'
+import { LayoutDashboard, Ticket, Building2, ClipboardList, Users, FileBarChart, LogOut, BookOpen, MessageCircle, UserPlus } from 'lucide-vue-next'
 
 const auth = useAuthStore()
+const notifications = useNotificationStore()
 const router = useRouter()
 const user = computed(() => auth.user)
+const totalUnread = computed(() => notifications.totalUnread)
 
 const allNavItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'USER'] },
   { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['ADMIN', 'USER'] },
+  { to: '/chat', label: 'Chat', icon: MessageCircle, roles: ['ADMIN', 'USER'] },
   { to: '/knowledge-base', label: 'Knowledge Base', icon: BookOpen, roles: ['ADMIN', 'USER'] },
   { to: '/clients', label: 'Clients', icon: Building2, roles: ['ADMIN'] },
+  { to: '/client-onboarding', label: 'Client Onboarding', icon: UserPlus, roles: ['ADMIN'] },
   { to: '/quotas', label: 'Quotas', icon: ClipboardList, roles: ['ADMIN'] },
   { to: '/service-catalog', label: 'Service Catalog', icon: BookOpen, roles: ['ADMIN'] },
   { to: '/users', label: 'Users', icon: Users, roles: ['ADMIN'] },

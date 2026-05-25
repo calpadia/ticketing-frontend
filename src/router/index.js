@@ -11,8 +11,10 @@ const routes = [
     children: [
       { path: '', name: 'Dashboard', component: () => import('../pages/Dashboard.vue') },
       { path: 'tickets', name: 'Tickets', component: () => import('../pages/Tickets.vue') },
+      { path: 'chat', name: 'Chat', component: () => import('../pages/Chat.vue') },
       { path: 'knowledge-base', name: 'KnowledgeBase', component: () => import('../pages/KnowledgeBase.vue') },
       { path: 'clients', name: 'Clients', component: () => import('../pages/Clients.vue'), meta: { roles: ['ADMIN'] } },
+      { path: 'client-onboarding', name: 'ClientOnboarding', component: () => import('../pages/ClientOnboarding.vue'), meta: { roles: ['ADMIN'] } },
       { path: 'users', name: 'Users', component: () => import('../pages/Users.vue'), meta: { roles: ['ADMIN'] } },
       { path: 'quotas', name: 'Quotas', component: () => import('../pages/Quotas.vue'), meta: { roles: ['ADMIN'] } },
       { path: 'service-catalog', name: 'ServiceCatalog', component: () => import('../pages/ServiceCatalog.vue'), meta: { roles: ['ADMIN'] } },

@@ -14,7 +14,10 @@ export const useAuthStore = defineStore('auth', () => {
       id: authResponse.id,
       name: authResponse.name,
       email: authResponse.email,
+      phone: authResponse.phone || null,
       role: authResponse.role,
+      clientId: authResponse.clientId || null,
+      clientName: authResponse.clientName || null,
     }
     localStorage.setItem('token', authResponse.token)
     localStorage.setItem('user', JSON.stringify(user.value))
