@@ -130,6 +130,21 @@
           }
         },
         {
+          "name": "Get Assignable Engineers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/users/assignable",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "assignable"]
+            },
+            "description": "Mengambil daftar user yang bisa di-assign sebagai engineer ke ticket. Filter otomatis berdasarkan role caller:\n- ADMIN: dapat list SUPPORT + TECHNICAL_SUPPORT\n- SUPPORT: dapat list TECHNICAL_SUPPORT saja (alur eskalasi)\n- Role lain: 403 Forbidden"
+          }
+        },
+        {
           "name": "Get User by ID",
           "request": {
             "method": "GET",
