@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "B2B ITSM Ticketing System API",
-    "description": "Postman collection for B2B ITSM Ticketing System Backend API. Includes Auth, User, Client, Client Quota, Ticket, and Chat (WebSocket + REST) APIs.",
+    "description": "Postman collection for B2B ITSM Ticketing System Backend API. Includes Auth, User, Client, Client Support, Project, Client Quota, Ticket, Ticket Assignment, Attachment, and Chat (WebSocket + REST) APIs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -51,15 +51,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/register",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "register"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "register"]
             }
           }
         },
@@ -93,15 +86,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/auth/login",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "auth",
-                "login"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "auth", "login"]
             }
           }
         }
@@ -115,14 +101,8 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -130,14 +110,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/users",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
             }
           }
         },
@@ -146,21 +120,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/users",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users"]
             }
           }
         },
@@ -169,22 +134,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/users/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "1"]
             }
           }
         },
@@ -193,14 +148,8 @@
           "request": {
             "method": "PUT",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -208,15 +157,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/users/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "1"]
             }
           }
         },
@@ -225,22 +167,12 @@
           "request": {
             "method": "DELETE",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/users/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "users",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "users", "1"]
             }
           }
         }
@@ -254,14 +186,8 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -269,14 +195,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/clients",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "clients"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients"]
             }
           }
         },
@@ -285,21 +205,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/clients",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "clients"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients"]
             }
           }
         },
@@ -308,22 +219,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/clients/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "clients",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients", "1"]
             }
           }
         },
@@ -332,14 +233,8 @@
           "request": {
             "method": "PUT",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -347,15 +242,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/clients/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "clients",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients", "1"]
             }
           }
         },
@@ -364,23 +252,174 @@
           "request": {
             "method": "DELETE",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/clients/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "clients",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients", "1"]
             }
+          }
+        },
+        {
+          "name": "Add Supports to Client",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supportUserIds\": [2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clients/1/supports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients", "1", "supports"]
+            },
+            "description": "Menambahkan support engineer ke client. Support user yang ditambahkan akan otomatis di-assign ke ticket baru dari client ini."
+          }
+        },
+        {
+          "name": "Get Client Supports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/clients/1/supports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients", "1", "supports"]
+            },
+            "description": "Mengambil daftar semua support engineer aktif untuk client tertentu."
+          }
+        },
+        {
+          "name": "Remove Supports from Client",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supportUserIds\": [2]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clients/1/supports",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients", "1", "supports"]
+            },
+            "description": "Menghapus support engineer dari client."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Project API",
+      "description": "Endpoint untuk mengelola project. Project dimiliki oleh client. ADMIN: full CRUD. USER: read-only, hanya project milik client-nya sendiri.",
+      "item": [
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectName\": \"Project Alpha\",\n  \"description\": \"Implementasi sistem baru untuk client\",\n  \"clientId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects"]
+            },
+            "description": "Buat project baru untuk client. Hanya ADMIN yang bisa membuat project."
+          }
+        },
+        {
+          "name": "Get All Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects"]
+            },
+            "description": "Mengambil semua project. ADMIN melihat semua, USER hanya melihat project milik client-nya."
+          }
+        },
+        {
+          "name": "Get Project by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "1"]
+            },
+            "description": "Mengambil detail project berdasarkan ID. ADMIN bisa akses semua, USER hanya project milik client-nya."
+          }
+        },
+        {
+          "name": "Get Projects by Client ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/client/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "client", "1"]
+            },
+            "description": "Mengambil semua project untuk client tertentu. ADMIN bisa query client manapun, USER hanya client-nya sendiri."
+          }
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectName\": \"Project Alpha Updated\",\n  \"description\": \"Deskripsi project yang diperbarui\",\n  \"clientId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "1"]
+            },
+            "description": "Update project. Hanya ADMIN yang bisa mengubah project."
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/projects/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "projects", "1"]
+            },
+            "description": "Hapus project. Hanya ADMIN yang bisa menghapus project."
           }
         }
       ]
@@ -393,14 +432,8 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -408,14 +441,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/client-quotas",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "client-quotas"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "client-quotas"]
             }
           }
         },
@@ -424,21 +451,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/client-quotas",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "client-quotas"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "client-quotas"]
             }
           }
         },
@@ -447,22 +465,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/client-quotas/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "client-quotas",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "client-quotas", "1"]
             }
           }
         },
@@ -471,25 +479,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/client-quotas/client/1/year/2026",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "client-quotas",
-                "client",
-                "1",
-                "year",
-                "2026"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "client-quotas", "client", "1", "year", "2026"]
             }
           }
         },
@@ -498,14 +493,8 @@
           "request": {
             "method": "PUT",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -513,15 +502,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/client-quotas/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "client-quotas",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "client-quotas", "1"]
             }
           }
         },
@@ -530,22 +512,12 @@
           "request": {
             "method": "DELETE",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/client-quotas/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "client-quotas",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "client-quotas", "1"]
             }
           }
         }
@@ -560,21 +532,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/my-quotas",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "my-quotas"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "my-quotas"]
             },
             "description": "Mengambil semua kuota (PM & CM) untuk client milik user yang sedang login. Mengembalikan daftar kuota per tahun. Jika user tidak terkait dengan client (misalnya ADMIN tanpa client), mengembalikan array kosong."
           }
@@ -584,23 +547,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/my-quotas/year/2026",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "my-quotas",
-                "year",
-                "2026"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "my-quotas", "year", "2026"]
             },
             "description": "Mengambil kuota (PM & CM) untuk client milik user yang sedang login, untuk tahun tertentu. Mengembalikan detail kuota termasuk pmQuota, cmQuota, pmUsed, cmUsed."
           }
@@ -615,62 +567,24 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                {
-                  "key": "title",
-                  "value": "Server tidak bisa diakses",
-                  "type": "text"
-                },
-                {
-                  "key": "description",
-                  "value": "Server produksi down sejak pukul 10:00 WIB",
-                  "type": "text"
-                },
-                {
-                  "key": "priority",
-                  "value": "L1",
-                  "type": "text"
-                },
-                {
-                  "key": "maintenanceType",
-                  "value": "CM",
-                  "type": "text"
-                },
-                {
-                  "key": "clientId",
-                  "value": "1",
-                  "type": "text"
-                },
-                {
-                  "key": "requesterId",
-                  "value": "1",
-                  "type": "text"
-                },
-                {
-                  "key": "files",
-                  "type": "file",
-                  "src": [],
-                  "description": "(Optional) Pilih file lampiran pendukung. Bisa multiple file."
-                }
+                {"key": "title", "value": "Server tidak bisa diakses", "type": "text"},
+                {"key": "description", "value": "Server produksi down sejak pukul 10:00 WIB", "type": "text"},
+                {"key": "priority", "value": "L1", "type": "text"},
+                {"key": "maintenanceType", "value": "CM", "type": "text"},
+                {"key": "clientId", "value": "1", "type": "text"},
+                {"key": "requesterId", "value": "1", "type": "text"},
+                {"key": "files", "type": "file", "src": [], "description": "(Optional) Pilih file lampiran pendukung. Bisa multiple file."}
               ]
             },
             "url": {
               "raw": "{{base_url}}/api/v1/tickets",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tickets"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets"]
             },
             "description": "Buat ticket baru dengan lampiran file (optional). Gunakan form-data. Field 'files' bisa dikosongkan jika tidak ada lampiran."
           }
@@ -680,14 +594,8 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -695,14 +603,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/tickets",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tickets"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets"]
             },
             "description": "Buat ticket baru tanpa lampiran menggunakan JSON body. Backward compatible dengan API lama."
           }
@@ -712,21 +614,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/tickets",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tickets"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets"]
             }
           }
         },
@@ -735,22 +628,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/tickets/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tickets",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "1"]
             }
           }
         },
@@ -759,23 +642,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/tickets/number/TKT-20260522-001",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tickets",
-                "number",
-                "TKT-20260522-001"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "number", "TKT-20260522-001"]
             }
           }
         },
@@ -784,14 +656,8 @@
           "request": {
             "method": "PUT",
             "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "raw",
@@ -799,16 +665,8 @@
             },
             "url": {
               "raw": "{{base_url}}/api/v1/tickets/1/status",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tickets",
-                "1",
-                "status"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "1", "status"]
             },
             "description": "Update status ticket. Transisi yang valid:\n- OPEN → IN_PROGRESS\n- IN_PROGRESS → RESOLVED / CLOSED\n- RESOLVED → CLOSED / IN_PROGRESS (reopen)\n- CLOSED → (tidak bisa diubah)\n\nSetiap perubahan status otomatis dicatat di progress log."
           }
@@ -818,25 +676,110 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/tickets/1/progress",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "tickets",
-                "1",
-                "progress"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "1", "progress"]
             },
             "description": "Mengambil riwayat perubahan status ticket (progress log). Diurutkan berdasarkan waktu perubahan (ascending)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ticket Assignment API",
+      "description": "Endpoint untuk mengelola assignment support engineer ke ticket.\n\nAccess Control:\n- Assign/Unassign/Reassign: ADMIN only\n- View assignments by ticket: ADMIN, SUPPORT\n- View my assignments: SUPPORT, ADMIN",
+      "item": [
+        {
+          "name": "Assign Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supportUserIds\": [2, 3],\n  \"notes\": \"Assign ke tim support untuk investigasi\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/1/assign",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "1", "assign"]
+            },
+            "description": "Assign satu atau lebih support engineer ke ticket. Hanya ADMIN yang bisa melakukan assign."
+          }
+        },
+        {
+          "name": "Unassign Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supportUserIds\": [2],\n  \"reason\": \"Support engineer pindah ke project lain\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/1/unassign",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "1", "unassign"]
+            },
+            "description": "Unassign support engineer dari ticket. Hanya ADMIN yang bisa melakukan unassign."
+          }
+        },
+        {
+          "name": "Reassign Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"supportUserIds\": [4, 5],\n  \"notes\": \"Reassign ke tim yang lebih berpengalaman\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/1/reassign",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "1", "reassign"]
+            },
+            "description": "Reassign ticket: hapus semua assignment lama dan assign support engineer baru. Hanya ADMIN."
+          }
+        },
+        {
+          "name": "Get Ticket Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/1/assignments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "1", "assignments"]
+            },
+            "description": "Mengambil semua assignment aktif untuk ticket tertentu. Bisa diakses oleh ADMIN dan SUPPORT."
+          }
+        },
+        {
+          "name": "Get My Assignments",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/my-assignments",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "my-assignments"]
+            },
+            "description": "Mengambil semua ticket yang di-assign ke user yang sedang login. Bisa diakses oleh SUPPORT dan ADMIN."
           }
         }
       ]
@@ -850,23 +793,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/attachments/ticket/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "attachments",
-                "ticket",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "attachments", "ticket", "1"]
             },
             "description": "Mengambil daftar semua lampiran untuk ticket tertentu berdasarkan ticket ID."
           }
@@ -876,23 +808,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/attachments/1/download",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "attachments",
-                "1",
-                "download"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "attachments", "1", "download"]
             },
             "description": "Download file lampiran berdasarkan attachment ID."
           }
@@ -908,38 +829,19 @@
           "request": {
             "method": "POST",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "body": {
               "mode": "formdata",
               "formdata": [
-                {
-                  "key": "ticketId",
-                  "value": "1",
-                  "type": "text"
-                },
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": [],
-                  "description": "Pilih file yang akan dikirim di chat (gambar, PDF, dokumen, dll). Max 10MB."
-                }
+                {"key": "ticketId", "value": "1", "type": "text"},
+                {"key": "file", "type": "file", "src": [], "description": "Pilih file yang akan dikirim di chat (gambar, PDF, dokumen, dll). Max 10MB."}
               ]
             },
             "url": {
               "raw": "{{base_url}}/api/v1/chat/upload",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "chat",
-                "upload"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chat", "upload"]
             },
             "description": "Upload file untuk dikirim di chat. Response berisi attachmentId yang harus di-include di pesan WebSocket saat mengirim.\n\nAlur:\n1. Upload file via endpoint ini → dapat attachmentId\n2. Kirim pesan WebSocket dengan attachmentIds: [attachmentId]"
           }
@@ -949,24 +851,12 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/chat/attachments/1/download",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "chat",
-                "attachments",
-                "1",
-                "download"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chat", "attachments", "1", "download"]
             },
             "description": "Download file lampiran chat berdasarkan attachment ID. Access control: user harus memiliki akses ke ticket terkait."
           }
@@ -976,24 +866,14 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/chat/1",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "chat",
-                "1"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chat", "1"]
             },
-            "description": "Mengambil semua pesan chat untuk ticket tertentu berdasarkan ticket ID. Pesan diurutkan berdasarkan waktu kirim (ascending). Response sekarang termasuk info attachment di setiap pesan."
+            "description": "Mengambil semua pesan chat untuk ticket tertentu berdasarkan ticket ID. Pesan diurutkan berdasarkan waktu kirim (ascending). Response termasuk info attachment di setiap pesan."
           }
         },
         {
@@ -1001,25 +881,14 @@
           "request": {
             "method": "GET",
             "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}"
-              }
+              {"key": "Authorization", "value": "Bearer {{token}}"}
             ],
             "url": {
               "raw": "{{base_url}}/api/v1/chat/ticket/TKT-20260525-001",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "chat",
-                "ticket",
-                "TKT-20260525-001"
-              ]
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "chat", "ticket", "TKT-20260525-001"]
             },
-            "description": "Mengambil semua pesan chat untuk ticket tertentu berdasarkan ticket number. Pesan diurutkan berdasarkan waktu kirim (ascending). Response sekarang termasuk info attachment di setiap pesan."
+            "description": "Mengambil semua pesan chat untuk ticket tertentu berdasarkan ticket number. Pesan diurutkan berdasarkan waktu kirim (ascending). Response termasuk info attachment di setiap pesan."
           }
         }
       ]
