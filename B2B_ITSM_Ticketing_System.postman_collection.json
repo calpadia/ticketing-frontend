@@ -821,6 +821,108 @@
       ]
     },
     {
+      "name": "Service Catalog API",
+      "description": "Endpoint untuk mengelola Service Catalog. Setiap client memiliki maksimal satu entry catalog yang menentukan layanan maintenance (PM/CM) yang diberikan + catatan opsional. ADMIN only.",
+      "item": [
+        {
+          "name": "Create Service Catalog",
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": 1,\n  \"services\": [\"PM\", \"CM\"],\n  \"notes\": \"Layanan PM bulanan + CM on-demand\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-catalogs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "service-catalogs"]
+            },
+            "description": "Buat catalog baru untuk client. services minimal 1 dari [PM, CM]. Hanya 1 catalog per client."
+          }
+        },
+        {
+          "name": "Get All Service Catalogs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-catalogs",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "service-catalogs"]
+            }
+          }
+        },
+        {
+          "name": "Get Service Catalog by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-catalogs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "service-catalogs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Service Catalog by Client ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-catalogs/client/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "service-catalogs", "client", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Service Catalog",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"services\": [\"PM\"],\n  \"notes\": \"Updated: hanya PM\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-catalogs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "service-catalogs", "1"]
+            },
+            "description": "Update services dan/atau notes. Client tidak bisa diubah."
+          }
+        },
+        {
+          "name": "Delete Service Catalog",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/service-catalogs/1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "service-catalogs", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Chat API (WebSocket + REST)",
       "description": "Chat real-time antara ADMIN dan USER menggunakan WebSocket STOMP.\n\n## WebSocket Connection\n- **Endpoint**: ws://localhost:8080/ws (SockJS)\n- **Auth**: Kirim header STOMP `Authorization: Bearer <token>` saat CONNECT\n- **Subscribe**: /topic/chat/{ticketId}\n- **Send**: /app/chat.send\n\n## WebSocket Message Format (Send - Text Only)\n```json\n{\n  \"ticketId\": 1,\n  \"content\": \"Halo, saya butuh bantuan\"\n}\n```\n\n## WebSocket Message Format (Send - With Attachments)\n```json\n{\n  \"ticketId\": 1,\n  \"content\": \"Ini screenshot errornya\",\n  \"attachmentIds\": [1, 2]\n}\n```\n\n## WebSocket Message Format (Receive)\n```json\n{\n  \"id\": 1,\n  \"ticketId\": 1,\n  \"ticketNumber\": \"TKT-20260525-001\",\n  \"senderId\": 2,\n  \"senderName\": \"John Doe\",\n  \"senderRole\": \"USER\",\n  \"content\": \"Ini screenshot errornya\",\n  \"sentAt\": \"2026-05-25T10:30:00\",\n  \"attachments\": [\n    {\n      \"id\": 1,\n      \"fileName\": \"screenshot.png\",\n      \"fileType\": \"image/png\",\n      \"fileSize\": 234567,\n      \"downloadUrl\": \"/api/v1/chat/attachments/1/download\"\n    }\n  ]\n}\n```\n\n## Alur Kirim File\n1. Upload file via `POST /api/v1/chat/upload` → dapat `attachmentId`\n2. Kirim pesan WebSocket ke `/app/chat.send` dengan `attachmentIds: [id]`\n3. Server broadcast pesan + info attachment ke semua subscriber\n\nNote: Postman tidak mendukung STOMP over WebSocket secara langsung. Gunakan REST endpoints untuk upload file dan mengambil histori chat.",
       "item": [
