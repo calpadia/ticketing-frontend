@@ -700,6 +700,26 @@
             },
             "description": "Mengambil riwayat perubahan status ticket (progress log). Diurutkan berdasarkan waktu perubahan (ascending)."
           }
+        },
+        {
+          "name": "Export Tickets to CSV",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/tickets/export/csv?clientId=1&from=2026-01-01&to=2026-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "tickets", "export", "csv"],
+              "query": [
+                {"key": "clientId", "value": "1", "description": "(Optional) Filter by client ID"},
+                {"key": "from", "value": "2026-01-01", "description": "(Optional) Start date (yyyy-MM-dd, inclusive)"},
+                {"key": "to", "value": "2026-12-31", "description": "(Optional) End date (yyyy-MM-dd, inclusive)"}
+              ]
+            },
+            "description": "Export ticket ke CSV dengan filter optional: clientId, from, to.\n\nAccess control otomatis berdasarkan role:\n- ADMIN: bisa export semua\n- USER: hanya client-nya sendiri (clientId di query diabaikan)\n- SUPPORT/TECHNICAL_SUPPORT: hanya ticket yang di-assign\n\nResponse: file CSV (text/csv; charset=UTF-8) dengan header: Ticket Number, Title, Description, Status, Priority, Maintenance Type, Client, Project, Requester, Created At.\n\nTip: di Postman, klik 'Send and Download' untuk save sebagai file."
+          }
         }
       ]
     },
