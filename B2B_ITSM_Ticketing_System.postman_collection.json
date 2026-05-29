@@ -277,6 +277,26 @@
           }
         },
         {
+          "name": "Update Client Active Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"},
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/clients/1/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "clients", "1", "status"]
+            },
+            "description": "Mengaktifkan atau menonaktifkan client. Body: { isActive: true | false }. Hanya ADMIN. Soft toggle — data client tetap ada, hanya flag isActive yang berubah."
+          }
+        },
+        {
           "name": "Add Supports to Client",
           "request": {
             "method": "POST",
