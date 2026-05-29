@@ -958,6 +958,47 @@
       ]
     },
     {
+      "name": "SLA Report API",
+      "description": "Laporan performa SLA per client. SLA target hardcoded di backend (per priority L1-L4):\n- L1 (Critical): 1h response, 4h resolution\n- L2 (High): 2h response, 8h resolution\n- L3 (Medium): 4h response, 24h resolution\n- L4 (Low): 8h response, 72h resolution\n\nResponse otomatis tracking saat support team kirim chat pertama. Resolution otomatis tracking saat status diubah ke RESOLVED.",
+      "item": [
+        {
+          "name": "Get SLA Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sla-report?clientId=1&from=2026-01-01&to=2026-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sla-report"],
+              "query": [
+                {"key": "clientId", "value": "1", "description": "(Optional) Filter by client. ADMIN bebas, USER otomatis di-override ke client miliknya."},
+                {"key": "from", "value": "2026-01-01", "description": "(Optional) Start date (yyyy-MM-dd, inklusif)"},
+                {"key": "to", "value": "2026-12-31", "description": "(Optional) End date (yyyy-MM-dd, inklusif)"}
+              ]
+            },
+            "description": "Mengambil SLA report lengkap: targets + per-client metrics + per-priority breakdown.\n\nResponse berisi:\n- targets: list SLA target hours per priority\n- clients: array per client dengan total tiket, response/resolution metric (met/missed/pending/compliancePercent/averageHours), dan priorityBreakdown\n- from, to, generatedAt: echo filter dan timestamp generate"
+          }
+        },
+        {
+          "name": "Get SLA Targets Only",
+          "request": {
+            "method": "GET",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{token}}"}
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/sla-report/targets",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sla-report", "targets"]
+            },
+            "description": "Endpoint ringan: hanya tabel SLA target per priority (tanpa metrik). Berguna untuk menampilkan referensi target di frontend."
+          }
+        }
+      ]
+    },
+    {
       "name": "Chat API (WebSocket + REST)",
       "description": "Chat real-time antara ADMIN dan USER menggunakan WebSocket STOMP.\n\n## WebSocket Connection\n- **Endpoint**: ws://localhost:8080/ws (SockJS)\n- **Auth**: Kirim header STOMP `Authorization: Bearer <token>` saat CONNECT\n- **Subscribe**: /topic/chat/{ticketId}\n- **Send**: /app/chat.send\n\n## WebSocket Message Format (Send - Text Only)\n```json\n{\n  \"ticketId\": 1,\n  \"content\": \"Halo, saya butuh bantuan\"\n}\n```\n\n## WebSocket Message Format (Send - With Attachments)\n```json\n{\n  \"ticketId\": 1,\n  \"content\": \"Ini screenshot errornya\",\n  \"attachmentIds\": [1, 2]\n}\n```\n\n## WebSocket Message Format (Receive)\n```json\n{\n  \"id\": 1,\n  \"ticketId\": 1,\n  \"ticketNumber\": \"TKT-20260525-001\",\n  \"senderId\": 2,\n  \"senderName\": \"John Doe\",\n  \"senderRole\": \"USER\",\n  \"content\": \"Ini screenshot errornya\",\n  \"sentAt\": \"2026-05-25T10:30:00\",\n  \"attachments\": [\n    {\n      \"id\": 1,\n      \"fileName\": \"screenshot.png\",\n      \"fileType\": \"image/png\",\n      \"fileSize\": 234567,\n      \"downloadUrl\": \"/api/v1/chat/attachments/1/download\"\n    }\n  ]\n}\n```\n\n## Alur Kirim File\n1. Upload file via `POST /api/v1/chat/upload` → dapat `attachmentId`\n2. Kirim pesan WebSocket ke `/app/chat.send` dengan `attachmentIds: [id]`\n3. Server broadcast pesan + info attachment ke semua subscriber\n\nNote: Postman tidak mendukung STOMP over WebSocket secara langsung. Gunakan REST endpoints untuk upload file dan mengambil histori chat.",
       "item": [
