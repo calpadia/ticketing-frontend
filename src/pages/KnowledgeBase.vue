@@ -136,6 +136,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { getTickets } from '../api/tickets'
+import { mockTickets } from '../utils/mockData'
 import { Search, BookOpen, X } from 'lucide-vue-next'
 import PriorityBadge from '../components/PriorityBadge.vue'
 import StatusBadge from '../components/StatusBadge.vue'
@@ -176,7 +177,7 @@ onMounted(async () => {
     const res = await getTickets()
     allTickets.value = res.data
   } catch {
-    allTickets.value = []
+    allTickets.value = mockTickets
   }
 })
 

@@ -27,22 +27,32 @@
           <tr class="text-left text-gray-600">
             <th class="px-6 py-3 font-medium">Client</th>
             <th class="px-6 py-3 font-medium">Year</th>
-            <th class="px-6 py-3 font-medium">PM Quota</th>
-            <th class="px-6 py-3 font-medium">PM Used</th>
-            <th class="px-6 py-3 font-medium">CM Quota</th>
-            <th class="px-6 py-3 font-medium">CM Used</th>
+            <th class="px-6 py-3 font-medium">PM Progress</th>
+            <th class="px-6 py-3 font-medium">CM Progress</th>
             <th class="px-6 py-3 font-medium">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100">
-          <tr v-if="filtered.length === 0"><td colspan="7" class="text-center py-8 text-gray-500">No quotas found.</td></tr>
+          <tr v-if="filtered.length === 0"><td colspan="5" class="text-center py-8 text-gray-500">No quotas found.</td></tr>
           <tr v-for="q in filtered" :key="q.id" class="hover:bg-gray-50">
             <td class="px-6 py-3 font-medium text-gray-900">{{ q.clientCompanyName }}</td>
             <td class="px-6 py-3 text-gray-600">{{ q.year }}</td>
-            <td class="px-6 py-3 text-gray-600">{{ q.pmQuota }}</td>
-            <td class="px-6 py-3"><span :class="q.pmUsed >= q.pmQuota ? 'text-red-600 font-bold' : 'text-gray-600'">{{ q.pmUsed }}</span></td>
-            <td class="px-6 py-3 text-gray-600">{{ q.cmQuota }}</td>
-            <td class="px-6 py-3"><span :class="q.cmUsed >= q.cmQuota ? 'text-red-600 font-bold' : 'text-gray-600'">{{ q.cmUsed }}</span></td>
+            <td class="px-6 py-4 min-w-[180px]">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 h-2.5 bg-blue-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all" :class="q.pmUsed >= q.pmQuota ? 'bg-red-500' : 'bg-blue-500'" :style="{ width: Math.min((q.pmUsed / (q.pmQuota || 1)) * 100, 100) + '%' }"></div>
+                </div>
+                <span :class="['text-xs font-medium whitespace-nowrap', q.pmUsed >= q.pmQuota ? 'text-red-600' : 'text-gray-600']">{{ q.pmUsed }}/{{ q.pmQuota }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 min-w-[180px]">
+              <div class="flex items-center gap-2">
+                <div class="flex-1 h-2.5 bg-orange-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all" :class="q.cmUsed >= q.cmQuota ? 'bg-red-500' : 'bg-orange-500'" :style="{ width: Math.min((q.cmUsed / (q.cmQuota || 1)) * 100, 100) + '%' }"></div>
+                </div>
+                <span :class="['text-xs font-medium whitespace-nowrap', q.cmUsed >= q.cmQuota ? 'text-red-600' : 'text-gray-600']">{{ q.cmUsed }}/{{ q.cmQuota }}</span>
+              </div>
+            </td>
             <td class="px-6 py-3">
               <div class="flex gap-2">
                 <button @click="startEdit(q)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
@@ -58,12 +68,15 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { getClientQuotas, createClientQuota, updateClientQuota, deleteClientQuota } from '../api/quotas'
 import { getClients } from '../api/clients'
+import { mockQuotas, mockClients } from '../utils/mockData'
 import { Search, Plus, X, Pencil, Trash2 } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const confirmDialog = ref(null)
+const route = useRoute()
 import QuotaBar from '../components/QuotaBar.vue'
 
 const quotas = ref([])
@@ -76,8 +89,13 @@ const search = ref('')
 const filtered = computed(() => quotas.value.filter(q => q.clientCompanyName?.toLowerCase().includes(search.value.toLowerCase())))
 
 onMounted(async () => {
-  try { const res = await getClientQuotas(); quotas.value = res.data } catch { quotas.value = [] }
-  try { const res = await getClients(); clients.value = res.data } catch { clients.value = [] }
+  try { const res = await getClientQuotas(); quotas.value = res.data } catch { quotas.value = mockQuotas }
+  try { const res = await getClients(); clients.value = res.data } catch { clients.value = mockClients }
+  // Auto-fill client from query param
+  if (route.query.clientId) {
+    form.clientId = route.query.clientId
+    showForm.value = true
+  }
 })
 
 function toggleForm() { showForm.value = !showForm.value; editingId.value = null; Object.assign(form, { clientId: '', year: new Date().getFullYear(), pmQuota: 0, cmQuota: 0 }) }

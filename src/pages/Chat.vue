@@ -135,6 +135,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { Client } from '@stomp/stompjs'
 import SockJS from 'sockjs-client/dist/sockjs'
 import { getTickets } from '../api/tickets'
@@ -169,9 +170,18 @@ const filteredTickets = computed(() =>
   )
 )
 
+const route = useRoute()
+
 onMounted(async () => {
   try { const res = await getTickets(); tickets.value = res.data } catch { tickets.value = [] }
   connectWebSocket()
+
+  // Auto-select ticket if ticketId is in query params
+  const ticketId = route.query.ticketId
+  if (ticketId) {
+    const ticket = tickets.value.find(t => t.id === Number(ticketId))
+    if (ticket) selectTicket(ticket)
+  }
 })
 
 onUnmounted(() => {

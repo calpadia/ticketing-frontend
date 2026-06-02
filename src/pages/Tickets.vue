@@ -2,14 +2,19 @@
   <div>
     <!-- List view -->
     <div v-if="!showForm">
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h2 class="text-2xl font-bold text-gray-900">Tickets</h2>
+          <h2 class="text-xl lg:text-2xl font-bold text-gray-900">Tickets</h2>
           <p class="text-gray-500 text-sm mt-1">{{ filtered.length }} ticket(s) found</p>
         </div>
-        <button @click="showForm = true" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
-          <Plus class="w-4 h-4" /> Registrasi Tiket
-        </button>
+        <div class="flex gap-2">
+          <button @click="handleExport" class="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-50 font-medium">
+            <FileDown class="w-4 h-4" /> Export CSV
+          </button>
+          <button v-if="auth.user?.role === 'ADMIN' || auth.user?.role === 'USER'" @click="showForm = true" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
+            <Plus class="w-4 h-4" /> Registrasi Tiket
+          </button>
+        </div>
       </div>
 
       <!-- Search & Filter -->
@@ -24,7 +29,8 @@
 
       <!-- Table -->
       <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <table class="w-full text-sm">
+        <div class="overflow-x-auto">
+        <table class="w-full text-sm min-w-[700px]">
           <thead class="bg-gray-50">
             <tr class="text-left text-gray-600">
               <th class="px-6 py-3 font-medium">Ticket #</th><th class="px-6 py-3 font-medium">Title</th><th class="px-6 py-3 font-medium">Status</th><th class="px-6 py-3 font-medium">Priority</th><th class="px-6 py-3 font-medium">Type</th><th class="px-6 py-3 font-medium">Client</th><th class="px-6 py-3 font-medium">Created</th>
@@ -43,6 +49,7 @@
             </tr>
           </tbody>
         </table>
+        </div>
         <div v-if="totalPages > 1" class="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
           <p class="text-sm text-gray-500">Showing {{ (currentPage-1)*perPage+1 }} to {{ Math.min(currentPage*perPage, filtered.length) }} of {{ filtered.length }}</p>
           <div class="flex gap-1">
@@ -77,6 +84,12 @@
               <div><p class="text-xs text-gray-500">Requester</p><p class="text-sm font-medium">{{ selectedTicket.requesterName }}</p></div>
             </div>
 
+            <!-- Open Chat button -->
+            <button @click="goToChat(selectedTicket)" class="w-full flex items-center justify-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-2.5 rounded-lg hover:bg-blue-100 font-medium text-sm transition-colors">
+              <MessageCircle class="w-4 h-4" />
+              Buka Chat Ticket Ini
+            </button>
+
             <!-- Attachments -->
             <div v-if="ticketAttachments.length > 0">
               <p class="text-xs text-gray-500 mb-2">Attachments</p>
@@ -90,8 +103,8 @@
               </div>
             </div>
 
-            <!-- Update Status (Admin only) -->
-            <div v-if="auth.isAdmin" class="border-t border-gray-200 pt-4">
+            <!-- Update Status (Admin/Support) -->
+            <div v-if="canManageTickets" class="border-t border-gray-200 pt-4">
               <div class="flex items-center justify-between mb-2">
                 <p class="text-sm font-medium text-gray-700">Update Status</p>
                 <button @click="showStatusForm = !showStatusForm" class="text-xs text-blue-600 hover:text-blue-800">
@@ -105,6 +118,46 @@
                 </select>
                 <textarea v-model="statusForm.notes" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Catatan perubahan (opsional)"></textarea>
                 <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 font-medium">Update Status</button>
+              </form>
+            </div>
+
+            <!-- Assignments (Admin/Support) -->
+            <div v-if="canAssignTickets" class="border-t border-gray-200 pt-4">
+              <div class="flex items-center justify-between mb-2">
+                <p class="text-sm font-medium text-gray-700 flex items-center gap-2"><UserCheck class="w-4 h-4" /> Assigned Support</p>
+                <button @click="showAssignForm = !showAssignForm" class="text-xs text-blue-600 hover:text-blue-800">
+                  {{ showAssignForm ? 'Cancel' : 'Assign' }}
+                </button>
+              </div>
+              <!-- Current assignments -->
+              <div v-if="ticketAssignments.length > 0" class="space-y-2 mb-3">
+                <div v-for="a in ticketAssignments" :key="a.id" class="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2">
+                  <div class="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-medium">{{ a.assignedToName?.charAt(0) }}</div>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ a.assignedToName }}</p>
+                    <p class="text-xs text-gray-500">{{ a.assignedToEmail }}</p>
+                  </div>
+                </div>
+              </div>
+              <p v-else class="text-xs text-gray-400 mb-3">Belum ada support yang ditugaskan.</p>
+              <!-- Assign form -->
+              <form v-if="showAssignForm" @submit.prevent="handleAssign" class="space-y-3">
+                <div>
+                  <label class="block text-xs text-gray-500 mb-2">Pilih Support Engineer</label>
+                  <div class="border border-gray-200 rounded-lg max-h-40 overflow-y-auto">
+                    <label v-for="u in assignableUsers" :key="u.id"
+                      class="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+                      <input type="checkbox" :value="u.id" v-model="assignForm.supportUserIds" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                      <div class="w-7 h-7 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium">{{ u.name.charAt(0) }}</div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-medium text-gray-900 truncate">{{ u.name }}</p>
+                        <p class="text-xs text-gray-400">{{ u.role }}</p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <textarea v-model="assignForm.notes" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Catatan assignment (opsional)"></textarea>
+                <button type="submit" :disabled="assignForm.supportUserIds.length === 0" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 font-medium disabled:opacity-50">Assign</button>
               </form>
             </div>
 
@@ -140,7 +193,7 @@
         <p class="text-sm text-gray-500 mb-6">Isi form berikut untuk mengajukan tiket dukungan teknis</p>
 
         <!-- Quota info bar -->
-        <div class="grid grid-cols-3 rounded-xl overflow-hidden border border-gray-200 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-3 rounded-xl overflow-hidden border border-gray-200 mb-8">
           <div class="bg-gradient-to-br from-blue-50 to-blue-100 px-5 py-4 border-l-4 border-blue-600">
             <p class="text-xs text-blue-600 font-semibold uppercase tracking-wide">Sisa Kuota PM</p>
             <p class="text-2xl font-bold text-blue-700 mt-1">{{ quotaInfo.pmRemaining }} <span class="text-sm font-normal">Tiket</span></p>
@@ -187,9 +240,16 @@
           <div v-if="auth.isAdmin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1.5">Client *</label>
-              <select v-model="form.clientId" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
+              <select v-model="form.clientId" @change="loadProjects" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
                 <option value="">Pilih Client...</option>
                 <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Project</label>
+              <select v-model="form.projectId" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Pilih Project...</option>
+                <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.projectName }}</option>
               </select>
             </div>
             <div>
@@ -200,16 +260,25 @@
               </select>
             </div>
           </div>
-          <div v-else class="bg-gray-50 border border-gray-200 rounded-lg px-5 py-3">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <p class="text-xs text-gray-500">Client</p>
-                <p class="text-sm font-medium text-gray-900">{{ auth.user?.clientName || '-' }}</p>
+          <div v-else class="space-y-4">
+            <div class="bg-gray-50 border border-gray-200 rounded-lg px-5 py-3">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-xs text-gray-500">Client</p>
+                  <p class="text-sm font-medium text-gray-900">{{ auth.user?.clientName || '-' }}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-gray-500">Requester</p>
+                  <p class="text-sm font-medium text-gray-900">{{ auth.user?.name }}</p>
+                </div>
               </div>
-              <div>
-                <p class="text-xs text-gray-500">Requester</p>
-                <p class="text-sm font-medium text-gray-900">{{ auth.user?.name }}</p>
-              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Project</label>
+              <select v-model="form.projectId" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                <option value="">Pilih Project...</option>
+                <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.projectName }}</option>
+              </select>
             </div>
           </div>
 
@@ -271,18 +340,28 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { getTickets } from '../api/tickets'
 import { getClients } from '../api/clients'
-import { getUsers } from '../api/users'
+import { getUsers, getAssignableEngineers } from '../api/users'
 import { getClientQuotas, getMyQuotas } from '../api/quotas'
-import { createTicket, updateTicketStatus, getTicketProgress } from '../api/tickets'
+import { getProjectsByClientId } from '../api/projects'
+import { createTicket, updateTicketStatus, getTicketProgress, exportTicketsCsv } from '../api/tickets'
 import { getAttachmentsByTicketId, downloadAttachment } from '../api/attachments'
+import { assignTicket, getTicketAssignments } from '../api/assignments'
 import { useAuthStore } from '../stores/auth'
-import { Search, Plus, X, Paperclip, Download, Clock } from 'lucide-vue-next'
+import { mockTickets, mockClients, mockUsers, mockQuotas, mockProjects } from '../utils/mockData'
+import { Search, Plus, X, Paperclip, Download, Clock, MessageCircle, UserCheck, FileDown } from 'lucide-vue-next'
 import StatusBadge from '../components/StatusBadge.vue'
 import PriorityBadge from '../components/PriorityBadge.vue'
 
+import { useNotificationStore } from '../stores/notifications'
+
 const auth = useAuthStore()
+const router = useRouter()
+const notifications = useNotificationStore()
+const canManageTickets = computed(() => ['ADMIN', 'SUPPORT', 'TECHNICAL_SUPPORT'].includes(auth.user?.role))
+const canAssignTickets = computed(() => ['ADMIN', 'SUPPORT'].includes(auth.user?.role))
 
 const tickets = ref([])
 const clients = ref([])
@@ -293,11 +372,12 @@ const search = ref('')
 const filterStatus = ref('')
 const filterPriority = ref('')
 const currentPage = ref(1)
-const perPage = 5
+const perPage = 50
 const selectedTicket = ref(null)
-const form = reactive({ title: '', description: '', priority: 'L3', maintenanceType: '', clientId: '', requesterId: auth.user?.id || '' })
+const form = reactive({ title: '', description: '', priority: 'L3', maintenanceType: '', clientId: '', projectId: '', requesterId: auth.user?.id || '' })
 const attachments = ref([])
 const dragOver = ref(false)
+const projects = ref([])
 
 const slaTargets = {
   L1: { response: '1 Jam', resolution: '4 Jam' },
@@ -342,16 +422,47 @@ const paginated = computed(() => filtered.value.slice((currentPage.value - 1) * 
 watch([search, filterStatus, filterPriority], () => { currentPage.value = 1 })
 
 onMounted(async () => {
-  try { const res = await getTickets(); tickets.value = res.data } catch { tickets.value = [] }
+  try { const res = await getTickets(); tickets.value = res.data; notifications.clearNewTickets(res.data.length) } catch { tickets.value = mockTickets }
   if (auth.isAdmin) {
-    try { const res = await getClients(); clients.value = res.data } catch { clients.value = [] }
-    try { const res = await getUsers(); users.value = res.data } catch { users.value = [] }
+    try { const res = await getClients(); clients.value = res.data } catch { clients.value = mockClients }
+    try { const res = await getUsers(); users.value = res.data } catch { users.value = mockUsers }
+  } else if (auth.user?.role === 'USER') {
+    // Load projects for user's client
+    if (auth.user?.clientId) {
+      try { const res = await getProjectsByClientId(auth.user.clientId); projects.value = res.data }
+      catch { projects.value = mockProjects.filter(p => p.clientId === auth.user.clientId) }
+    }
   }
-  try {
-    const res = auth.isAdmin ? await getClientQuotas() : await getMyQuotas()
-    quotas.value = res.data
-  } catch { quotas.value = [] }
+  if (auth.user?.role === 'USER') {
+    try {
+      const res = await getMyQuotas()
+      quotas.value = res.data
+    } catch { quotas.value = mockQuotas }
+  } else if (auth.isAdmin) {
+    try {
+      const res = await getClientQuotas()
+      quotas.value = res.data
+    } catch { quotas.value = mockQuotas }
+  }
 })
+
+async function handleExport() {
+  try {
+    await exportTicketsCsv()
+  } catch {}
+}
+
+function goToChat(ticket) {
+  selectedTicket.value = null
+  router.push({ path: '/chat', query: { ticketId: ticket.id } })
+}
+
+async function loadProjects() {
+  form.projectId = ''
+  if (!form.clientId) { projects.value = []; return }
+  try { const res = await getProjectsByClientId(Number(form.clientId)); projects.value = res.data }
+  catch { projects.value = mockProjects.filter(p => p.clientId === Number(form.clientId)) }
+}
 
 async function handleCreate() {
   const payload = {
@@ -360,6 +471,7 @@ async function handleCreate() {
     priority: form.priority,
     maintenanceType: form.maintenanceType,
     clientId: auth.isAdmin ? Number(form.clientId) : (auth.user?.clientId || Number(form.clientId)),
+    projectId: form.projectId ? Number(form.projectId) : null,
     requesterId: Number(form.requesterId) || auth.user?.id,
   }
   try {
@@ -367,8 +479,9 @@ async function handleCreate() {
     showForm.value = false
     const res = await getTickets(); tickets.value = res.data
     // Reset form
-    Object.assign(form, { title: '', description: '', priority: 'L3', maintenanceType: '', clientId: '', requesterId: auth.user?.id || '' })
+    Object.assign(form, { title: '', description: '', priority: 'L3', maintenanceType: '', clientId: '', projectId: '', requesterId: auth.user?.id || '' })
     attachments.value = []
+    projects.value = []
   } catch {
     // handle error
   }
@@ -379,6 +492,10 @@ const progressLogs = ref([])
 const ticketAttachments = ref([])
 const statusForm = reactive({ status: '', notes: '' })
 const showStatusForm = ref(false)
+const ticketAssignments = ref([])
+const showAssignForm = ref(false)
+const assignForm = reactive({ supportUserIds: [], notes: '' })
+const assignableUsers = ref([])
 
 const allowedTransitions = computed(() => {
   const current = selectedTicket.value?.status
@@ -395,12 +512,24 @@ async function openTicketDetail(ticket) {
   selectedTicket.value = ticket
   progressLogs.value = []
   ticketAttachments.value = []
+  ticketAssignments.value = []
+  assignableUsers.value = []
   showStatusForm.value = false
+  showAssignForm.value = false
   try { const res = await getTicketProgress(ticket.id); progressLogs.value = res.data } catch {}
   if (ticket.attachments) {
     ticketAttachments.value = ticket.attachments
   } else {
     try { const res = await getAttachmentsByTicketId(ticket.id); ticketAttachments.value = res.data } catch {}
+  }
+  if (ticket.assignments) {
+    ticketAssignments.value = ticket.assignments
+  } else {
+    try { const res = await getTicketAssignments(ticket.id); ticketAssignments.value = res.data } catch {}
+  }
+  // Load assignable users for assign form
+  if (canAssignTickets.value) {
+    try { assignableUsers.value = (await getAssignableEngineers()).data } catch { assignableUsers.value = users.value.filter(u => u.role === 'SUPPORT' || u.role === 'TECHNICAL_SUPPORT' || u.role === 'ADMIN') }
   }
 }
 
@@ -419,6 +548,21 @@ async function handleUpdateStatus() {
     showStatusForm.value = false
     statusForm.status = ''
     statusForm.notes = ''
+  } catch {}
+}
+
+async function handleAssign() {
+  if (assignForm.supportUserIds.length === 0 || !selectedTicket.value) return
+  try {
+    await assignTicket(selectedTicket.value.id, {
+      supportUserIds: assignForm.supportUserIds.map(Number),
+      notes: assignForm.notes,
+    })
+    const res = await getTicketAssignments(selectedTicket.value.id)
+    ticketAssignments.value = res.data
+    showAssignForm.value = false
+    assignForm.supportUserIds = []
+    assignForm.notes = ''
   } catch {}
 }
 

@@ -13,6 +13,7 @@ export const createTicket = (data, files) => {
   formData.append('maintenanceType', data.maintenanceType)
   formData.append('clientId', data.clientId)
   formData.append('requesterId', data.requesterId)
+  if (data.projectId) formData.append('projectId', data.projectId)
 
   if (files && files.length > 0) {
     files.forEach(file => formData.append('files', file))
@@ -28,3 +29,20 @@ export const updateTicketStatus = (id, data) => api.put(`/tickets/${id}/status`,
 
 // Get progress logs
 export const getTicketProgress = (id) => api.get(`/tickets/${id}/progress`)
+
+// Export tickets as CSV
+export const exportTicketsCsv = async (params = {}) => {
+  const query = new URLSearchParams()
+  if (params.clientId) query.append('clientId', params.clientId)
+  if (params.from) query.append('from', params.from)
+  if (params.to) query.append('to', params.to)
+  const response = await api.get(`/tickets/export/csv?${query.toString()}`, { responseType: 'blob' })
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', response.headers['content-disposition']?.split('filename="')[1]?.replace('"', '') || 'tickets-export.csv')
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}

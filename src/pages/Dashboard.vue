@@ -43,7 +43,8 @@
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200"><h3 class="text-lg font-semibold text-gray-900">Recent Tickets</h3></div>
-      <table class="w-full text-sm">
+      <div class="overflow-x-auto">
+      <table class="w-full text-sm min-w-[600px]">
         <thead class="bg-gray-50">
           <tr class="text-left text-gray-600">
             <th class="px-6 py-3 font-medium">Ticket #</th>
@@ -63,6 +64,7 @@
           </tr>
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 </template>
@@ -73,6 +75,7 @@ import { getTickets } from '../api/tickets'
 import { getClients } from '../api/clients'
 import { getUsers } from '../api/users'
 import { useAuthStore } from '../stores/auth'
+import { mockTickets, mockClients, mockUsers } from '../utils/mockData'
 import { Building2, Users as UsersIcon, Ticket } from 'lucide-vue-next'
 import StatCard from '../components/StatCard.vue'
 import BarItem from '../components/BarItem.vue'
@@ -91,10 +94,10 @@ const closedCount = computed(() => tickets.value.filter(t => t.status === 'CLOSE
 const recentTickets = computed(() => [...tickets.value].reverse().slice(0, 5))
 
 onMounted(async () => {
-  try { const res = await getTickets(); tickets.value = res.data } catch { tickets.value = [] }
+  try { const res = await getTickets(); tickets.value = res.data } catch { tickets.value = mockTickets }
   if (auth.isAdmin) {
-    try { const res = await getClients(); clients.value = res.data } catch { clients.value = [] }
-    try { const res = await getUsers(); users.value = res.data } catch { users.value = [] }
+    try { const res = await getClients(); clients.value = res.data } catch { clients.value = mockClients }
+    try { const res = await getUsers(); users.value = res.data } catch { users.value = mockUsers }
   }
 })
 </script>

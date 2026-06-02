@@ -11,18 +11,23 @@
     <form v-if="showForm" @submit.prevent="handleSubmit" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
       <h3 class="text-lg font-semibold mb-4">{{ editingId ? 'Edit User' : 'Create New User' }}</h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="md:col-span-2"><label class="block text-sm font-medium text-gray-700 mb-1">Role *</label><select v-model="form.role" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="USER">User</option><option value="SUPPORT">Support</option><option value="TECHNICAL_SUPPORT">Technical Support</option><option value="ADMIN">Admin</option></select></div>
         <div><label class="block text-sm font-medium text-gray-700 mb-1">Name *</label><input v-model="form.name" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required /></div>
         <div><label class="block text-sm font-medium text-gray-700 mb-1">Email *</label><input v-model="form.email" type="email" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required /></div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">Password {{ editingId ? '' : '*' }}</label><input v-model="form.password" type="password" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" :required="!editingId" :placeholder="editingId ? 'Leave blank to keep' : ''" /></div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">Role *</label><select v-model="form.role" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"><option value="USER">User</option><option value="ADMIN">Admin</option></select></div>
-        <div>
+        <div class="md:col-span-2"><PasswordInput v-model="form.password" :label="'Password ' + (editingId ? '' : '')" :required="!editingId" :placeholder="editingId ? 'Kosongkan jika tidak ingin mengubah' : 'Min 8 karakter, huruf besar, angka, special char'" :show-policy="!editingId || form.password.length > 0" /></div>
+        <div class="md:col-span-2" v-if="!editingId || form.password">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Konfirmasi Password *</label>
+          <input v-model="form.confirmPassword" type="password" class="w-full border rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" :class="form.confirmPassword && form.confirmPassword !== form.password ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'" placeholder="Ulangi password" :required="!editingId || form.password.length > 0" />
+          <p v-if="form.confirmPassword && form.confirmPassword !== form.password" class="text-xs text-red-600 mt-1">Password tidak cocok</p>
+        </div>
+        <div><label class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon *</label><input v-model="form.phone" type="tel" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="08123456789" required /></div>
+        <div v-if="form.role === 'USER'" class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan *</label>
           <select v-model="form.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             <option value="">-- Pilih perusahaan --</option>
             <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
           </select>
         </div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon *</label><input v-model="form.phone" type="tel" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="08123456789" required /></div>
       </div>
       <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">{{ editingId ? 'Update' : 'Create' }}</button>
     </form>
@@ -71,8 +76,11 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { getUsers, createUser, updateUser, deleteUser } from '../api/users'
 import { getClients } from '../api/clients'
+import { mockUsers, mockClients } from '../utils/mockData'
+import { validatePassword } from '../utils/passwordPolicy'
 import { Search, Plus, X, Pencil, Trash2 } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import PasswordInput from '../components/PasswordInput.vue'
 
 const confirmDialog = ref(null)
 
@@ -80,7 +88,7 @@ const users = ref([])
 const clients = ref([])
 const showForm = ref(false)
 const editingId = ref(null)
-const form = reactive({ name: '', email: '', password: '', role: 'USER', clientId: '', phone: '' })
+const form = reactive({ name: '', email: '', password: '', confirmPassword: '', role: 'USER', clientId: '', phone: '' })
 const search = ref('')
 
 const filtered = computed(() => users.value.filter(u =>
@@ -90,8 +98,8 @@ const filtered = computed(() => users.value.filter(u =>
 ))
 
 onMounted(async () => {
-  try { users.value = (await getUsers()).data } catch { users.value = [] }
-  try { clients.value = (await getClients()).data } catch { clients.value = [] }
+  try { users.value = (await getUsers()).data } catch { users.value = mockUsers }
+  try { clients.value = (await getClients()).data } catch { clients.value = mockClients }
 })
 
 function getClientName(clientId) {
@@ -103,16 +111,24 @@ function getClientName(clientId) {
 function toggleForm() {
   showForm.value = !showForm.value
   editingId.value = null
-  Object.assign(form, { name: '', email: '', password: '', role: 'USER', clientId: '', phone: '' })
+  Object.assign(form, { name: '', email: '', password: '', confirmPassword: '', role: 'USER', clientId: '', phone: '' })
 }
 
 function startEdit(u) {
   editingId.value = u.id
-  Object.assign(form, { name: u.name, email: u.email, password: '', role: u.role, clientId: u.clientId || '', phone: u.phone || '' })
+  Object.assign(form, { name: u.name, email: u.email, password: '', confirmPassword: '', role: u.role, clientId: u.clientId || '', phone: u.phone || '' })
   showForm.value = true
 }
 
 async function handleSubmit() {
+  // Validate password policy
+  if (form.password && !validatePassword(form.password).valid) {
+    return
+  }
+  // Validate confirm password
+  if (form.password && form.password !== form.confirmPassword) {
+    return
+  }
   try {
     const payload = { ...form, clientId: form.clientId ? Number(form.clientId) : null }
     if (editingId.value) await updateUser(editingId.value, payload)
@@ -122,7 +138,7 @@ async function handleSubmit() {
     // API unavailable
   }
   showForm.value = false; editingId.value = null
-  Object.assign(form, { name: '', email: '', password: '', role: 'USER', clientId: '', phone: '' })
+  Object.assign(form, { name: '', email: '', password: '', confirmPassword: '', role: 'USER', clientId: '', phone: '' })
 }
 
 async function handleDelete(id) {

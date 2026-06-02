@@ -3,3 +3,13 @@
 button, [role="button"] {
   cursor: pointer;
 }
+
+/* Responsive table wrapper - horizontal scroll on small screens */
+.table-responsive {
+  @apply overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0;
+}
+
+/* Ensure tables don't break on mobile */
+.table-responsive table {
+  @apply min-w-[640px];
+}

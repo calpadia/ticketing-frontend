@@ -50,6 +50,9 @@ export function useGlobalChat() {
       const res = await getTickets()
       const tickets = res.data
 
+      // Update ticket count for badge
+      notifications.updateTicketCount(tickets.length)
+
       tickets.forEach(t => {
         if (stompClient && connected.value) {
           const sub = stompClient.subscribe(`/topic/chat/${t.id}`, (message) => {
