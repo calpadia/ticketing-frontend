@@ -4,6 +4,30 @@ button, [role="button"] {
   cursor: pointer;
 }
 
+/* Button Micro-interactions */
+button:not(:disabled), [role="button"]:not(:disabled) {
+  @apply active:scale-[0.97] transition-transform duration-150;
+}
+
+/* Premium Tooltip */
+.has-tooltip {
+  @apply relative;
+}
+.has-tooltip::before {
+  content: '';
+  @apply absolute bottom-full right-[9px] mb-0.5 border-[5px] border-transparent border-t-gray-900 opacity-0 invisible transition-all duration-200 pointer-events-none z-50;
+}
+.has-tooltip::after {
+  content: attr(data-tooltip);
+  @apply absolute bottom-full right-0 mb-2.5 px-2.5 py-1.5 bg-gray-900 text-white text-xs font-medium rounded-lg opacity-0 invisible transition-all duration-200 whitespace-nowrap pointer-events-none z-50 shadow-xl tracking-wide;
+}
+.has-tooltip:hover::before {
+  @apply opacity-100 visible mb-1.5;
+}
+.has-tooltip:hover::after {
+  @apply opacity-100 visible mb-3.5;
+}
+
 /* Responsive table wrapper - horizontal scroll on small screens */
 .table-responsive {
   @apply overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0;

@@ -25,7 +25,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Perusahaan *</label>
           <select v-model="form.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             <option value="">-- Pilih perusahaan --</option>
-            <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+            <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
           </select>
         </div>
       </div>
@@ -34,20 +34,38 @@
 
     <div class="relative mb-4"><Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input v-model="search" type="text" placeholder="Search users..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50">
-          <tr class="text-left text-gray-600">
-            <th class="px-6 py-3 font-medium">Name</th>
-            <th class="px-6 py-3 font-medium">Email</th>
-            <th class="px-6 py-3 font-medium">Perusahaan</th>
-            <th class="px-6 py-3 font-medium">Telepon</th>
-            <th class="px-6 py-3 font-medium">Role</th>
-            <th class="px-6 py-3 font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-if="filtered.length === 0"><td colspan="6" class="text-center py-8 text-gray-500">No users found.</td></tr>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-auto max-h-[70vh]">
+        <table class="w-full text-sm relative min-w-[700px]">
+          <thead class="bg-gray-50/95 backdrop-blur sticky top-0 z-10 shadow-sm">
+            <tr class="text-left text-gray-600">
+              <th class="px-6 py-3 font-medium">Name</th>
+              <th class="px-6 py-3 font-medium">Email</th>
+              <th class="px-6 py-3 font-medium">Perusahaan</th>
+              <th class="px-6 py-3 font-medium">Telepon</th>
+              <th class="px-6 py-3 font-medium">Role</th>
+              <th class="px-6 py-3 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr v-if="loading" v-for="i in 5" :key="'skel'+i" class="animate-pulse">
+              <td class="px-6 py-4"><div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-gray-200"></div><div class="h-4 bg-gray-200 rounded w-24"></div></div></td>
+              <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+              <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
+              <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
+              <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded-full w-16"></div></td>
+              <td class="px-6 py-4"><div class="flex gap-2"><div class="w-6 h-6 bg-gray-200 rounded"></div><div class="w-6 h-6 bg-gray-200 rounded"></div></div></td>
+            </tr>
+            <tr v-else-if="filtered.length === 0">
+              <td colspan="6" class="text-center py-16">
+                <div class="flex flex-col items-center justify-center">
+                  <div class="text-gray-300 mb-3"><Users class="w-16 h-16" /></div>
+                  <p class="text-gray-500 font-medium">Belum ada data user.</p>
+                  <p class="text-gray-400 text-sm mt-1">Klik tombol New User untuk menambahkan user baru.</p>
+                </div>
+              </td>
+            </tr>
           <tr v-for="u in filtered" :key="u.id" class="hover:bg-gray-50">
             <td class="px-6 py-3">
               <div class="flex items-center gap-3">
@@ -61,35 +79,76 @@
             <td class="px-6 py-3"><span :class="['px-2.5 py-0.5 rounded-full text-xs font-medium', u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-700']">{{ u.role }}</span></td>
             <td class="px-6 py-3">
               <div class="flex gap-2">
-                <button @click="startEdit(u)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
-                <button @click="handleDelete(u.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+                <button @click="startEdit(u)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit User'"><Pencil class="w-4 h-4" /></button>
+                <button @click="handleDelete(u.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus User'"><Trash2 class="w-4 h-4" /></button>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="md:hidden flex flex-col divide-y divide-gray-100 overflow-auto max-h-[70vh]">
+        <div v-if="loading" v-for="i in 5" :key="'m-skel-'+i" class="p-4 animate-pulse">
+          <div class="flex items-center gap-3 mb-3"><div class="w-10 h-10 rounded-full bg-gray-200"></div><div><div class="h-4 bg-gray-200 rounded w-24 mb-1"></div><div class="h-3 bg-gray-200 rounded w-32"></div></div></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2 mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/3 mb-3"></div>
+          <div class="flex justify-between"><div class="h-5 bg-gray-200 rounded-full w-16"></div><div class="flex gap-2"><div class="w-6 h-6 bg-gray-200 rounded"></div><div class="w-6 h-6 bg-gray-200 rounded"></div></div></div>
+        </div>
+        <div v-else-if="filtered.length === 0" class="p-8 text-center">
+          <div class="flex flex-col items-center justify-center">
+            <div class="text-gray-300 mb-3"><Users class="w-12 h-12" /></div>
+            <p class="text-gray-500 font-medium text-sm">Belum ada data user.</p>
+          </div>
+        </div>
+        <div v-for="u in filtered" :key="'m-'+u.id" class="p-4 bg-white hover:bg-gray-50 transition-colors">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-lg">{{ u.name.charAt(0).toUpperCase() }}</div>
+              <div>
+                <h4 class="font-medium text-gray-900">{{ u.name }}</h4>
+                <p class="text-xs text-gray-500">{{ u.email }}</p>
+              </div>
+            </div>
+            <div class="flex gap-1">
+              <button @click="startEdit(u)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
+              <button @click="handleDelete(u.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 mb-3">
+            <div><p class="text-[10px] text-gray-400 uppercase tracking-wider">Perusahaan</p><p class="text-sm text-gray-700 truncate">{{ getClientName(u.clientId) }}</p></div>
+            <div><p class="text-[10px] text-gray-400 uppercase tracking-wider">Telepon</p><p class="text-sm text-gray-700">{{ u.phone || '-' }}</p></div>
+          </div>
+          <div><span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase', u.role === 'ADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-700']">{{ u.role }}</span></div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { getUsers, createUser, updateUser, deleteUser } from '../api/users'
 import { getClients } from '../api/clients'
-import { mockUsers, mockClients } from '../utils/mockData'
 import { validatePassword } from '../utils/passwordPolicy'
-import { Search, Plus, X, Pencil, Trash2 } from 'lucide-vue-next'
+import { Search, Plus, X, Pencil, Trash2, Users } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import PasswordInput from '../components/PasswordInput.vue'
+import { useToastStore } from '../stores/toast'
 
 const confirmDialog = ref(null)
+const toast = useToastStore()
 
 const users = ref([])
 const clients = ref([])
 const showForm = ref(false)
+const loading = ref(true)
 const editingId = ref(null)
 const form = reactive({ name: '', email: '', password: '', confirmPassword: '', role: 'USER', clientId: '', phone: '' })
 const search = ref('')
+
+const activeClients = computed(() => clients.value.filter(c => c.isActive))
 
 const filtered = computed(() => users.value.filter(u =>
   u.name.toLowerCase().includes(search.value.toLowerCase()) ||
@@ -98,9 +157,28 @@ const filtered = computed(() => users.value.filter(u =>
 ))
 
 onMounted(async () => {
-  try { users.value = (await getUsers()).data } catch { users.value = mockUsers }
-  try { clients.value = (await getClients()).data } catch { clients.value = mockClients }
+  loading.value = true
+  try {
+    const [usersRes, clientsRes] = await Promise.all([
+      getUsers().catch(() => ({ data: [] })),
+      getClients().catch(() => ({ data: [] }))
+    ])
+    users.value = usersRes.data
+    clients.value = clientsRes.data
+  } finally {
+    loading.value = false
+  }
+  window.addEventListener('keydown', handleGlobalKeydown)
 })
+
+onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
+
+function handleGlobalKeydown(e) {
+  if (e.key === 'Escape' && showForm.value) {
+    showForm.value = false
+    editingId.value = null
+  }
+}
 
 function getClientName(clientId) {
   if (!clientId) return '-'
@@ -129,13 +207,31 @@ async function handleSubmit() {
   if (form.password && form.password !== form.confirmPassword) {
     return
   }
+
+  const actionName = editingId.value ? 'Pembaruan' : 'Pembuatan'
+  const actionText = editingId.value ? 'memperbarui' : 'membuat'
+  const actionLabel = editingId.value ? 'Ya, Perbarui' : 'Ya, Buat'
+
+  const confirmed = await confirmDialog.value.open({ 
+    title: `Konfirmasi ${actionName} User`, 
+    message: `Apakah Anda yakin ingin ${actionText} user ini?`,
+    confirmLabel: actionLabel,
+    confirmColor: 'blue'
+  })
+  if (!confirmed) return // Kembali ke form jika user klik tidak
+
   try {
     const payload = { ...form, clientId: form.clientId ? Number(form.clientId) : null }
-    if (editingId.value) await updateUser(editingId.value, payload)
-    else await createUser(payload)
+    if (editingId.value) {
+      await updateUser(editingId.value, payload)
+      toast.success('User berhasil diupdate')
+    } else {
+      await createUser(payload)
+      toast.success('User berhasil dibuat')
+    }
     users.value = (await getUsers()).data
   } catch {
-    // API unavailable
+    toast.error('Gagal menyimpan user')
   }
   showForm.value = false; editingId.value = null
   Object.assign(form, { name: '', email: '', password: '', confirmPassword: '', role: 'USER', clientId: '', phone: '' })

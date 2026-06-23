@@ -8,11 +8,11 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://192.168.20.133:8082',
+        target: 'http://192.168.20.148:8082',
         changeOrigin: true,
       },
       '/ws': {
-        target: 'http://192.168.20.133:8082',
+        target: 'http://192.168.20.148:8082',
         changeOrigin: true,
         ws: true,
       },

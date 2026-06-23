@@ -2,7 +2,15 @@
   <div>
     <ConfirmDialog ref="confirmDialog" />
     <div class="flex items-center justify-between mb-6">
-      <div><h2 class="text-2xl font-bold text-gray-900">Projects</h2><p class="text-gray-500 text-sm mt-1">Kelola project per client</p></div>
+      <div>
+        <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+          <router-link to="/client-management" class="hover:text-blue-600 transition-colors">Client Management</router-link>
+          <span class="text-gray-300">/</span>
+          <span class="font-medium text-gray-800">Projects</span>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900">Projects</h2>
+        <p class="text-gray-500 text-sm mt-1">Kelola project per client</p>
+      </div>
       <button @click="toggleForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
         <component :is="showForm ? X : Plus" class="w-4 h-4" /> {{ showForm ? 'Cancel' : 'New Project' }}
       </button>
@@ -19,7 +27,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Client *</label>
           <select v-model="form.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             <option value="">Pilih Client...</option>
-            <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+            <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
           </select>
         </div>
         <div class="md:col-span-2">
@@ -35,35 +43,84 @@
       <input v-model="search" type="text" placeholder="Search projects..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50">
-          <tr class="text-left text-gray-600">
-            <th class="px-6 py-3 font-medium">Project Name</th>
-            <th class="px-6 py-3 font-medium">Client</th>
-            <th class="px-6 py-3 font-medium">Description</th>
-            <th class="px-6 py-3 font-medium">Status</th>
-            <th class="px-6 py-3 font-medium">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-if="filtered.length === 0"><td colspan="5" class="text-center py-8 text-gray-500">No projects found.</td></tr>
-          <tr v-for="p in filtered" :key="p.id" class="hover:bg-gray-50 cursor-pointer" @click="openProjectDetail(p)">
-            <td class="px-6 py-3 font-medium text-gray-900">{{ p.projectName }}</td>
-            <td class="px-6 py-3 text-gray-600">{{ p.clientCompanyName }}</td>
-            <td class="px-6 py-3 text-gray-600 text-xs">{{ p.description || '-' }}</td>
-            <td class="px-6 py-3">
-              <span :class="['px-2.5 py-0.5 rounded-full text-xs font-medium', p.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800']">{{ p.isActive ? 'Active' : 'Inactive' }}</span>
-            </td>
-            <td class="px-6 py-3">
-              <div class="flex gap-2">
-                <button @click.stop="startEdit(p)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
-                <button @click.stop="handleDelete(p.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-auto max-h-[70vh]">
+        <table class="w-full text-sm relative min-w-[700px]">
+          <thead class="bg-gray-50/95 backdrop-blur sticky top-0 z-10 shadow-sm">
+            <tr class="text-left text-gray-600">
+              <th class="px-6 py-3 font-medium">Project Name</th>
+              <th class="px-6 py-3 font-medium">Client</th>
+              <th class="px-6 py-3 font-medium">Description</th>
+              <th class="px-6 py-3 font-medium">Status</th>
+              <th class="px-6 py-3 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr v-if="loading" v-for="i in 5" :key="'skel'+i" class="animate-pulse">
+              <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-40"></div></td>
+              <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+              <td class="px-6 py-4"><div class="h-3 bg-gray-200 rounded w-48"></div></td>
+              <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded-full w-16"></div></td>
+              <td class="px-6 py-4"><div class="flex gap-2"><div class="w-6 h-6 bg-gray-200 rounded"></div><div class="w-6 h-6 bg-gray-200 rounded"></div></div></td>
+            </tr>
+            <tr v-else-if="filtered.length === 0">
+              <td colspan="5" class="text-center py-16">
+                <div class="flex flex-col items-center justify-center">
+                  <div class="text-gray-300 mb-3"><FolderKanban class="w-16 h-16" /></div>
+                  <p class="text-gray-500 font-medium">Belum ada data project.</p>
+                  <p class="text-gray-400 text-sm mt-1">Klik tombol New Project untuk membuat project baru.</p>
+                </div>
+              </td>
+            </tr>
+            <tr v-for="p in filtered" :key="p.id" class="hover:bg-gray-50 cursor-pointer" @click="openProjectDetail(p)">
+              <td class="px-6 py-3 font-medium text-gray-900">{{ p.projectName }}</td>
+              <td class="px-6 py-3 text-gray-600">{{ p.clientCompanyName }}</td>
+              <td class="px-6 py-3 text-gray-600 text-xs">{{ p.description || '-' }}</td>
+              <td class="px-6 py-3">
+                <span :class="['px-2.5 py-0.5 rounded-full text-xs font-medium', p.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800']">{{ p.isActive ? 'Active' : 'Inactive' }}</span>
+              </td>
+              <td class="px-6 py-3">
+                <div class="flex gap-2">
+                  <button @click.stop="startEdit(p)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Project'"><Pencil class="w-4 h-4" /></button>
+                  <button @click.stop="handleDelete(p.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus Project'"><Trash2 class="w-4 h-4" /></button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="md:hidden flex flex-col divide-y divide-gray-100 overflow-auto max-h-[70vh]">
+        <div v-if="loading" v-for="i in 5" :key="'m-skel-'+i" class="p-4 animate-pulse">
+          <div class="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+          <div class="h-3 bg-gray-200 rounded w-full mb-1"></div>
+          <div class="h-3 bg-gray-200 rounded w-2/3 mb-4"></div>
+          <div class="flex justify-between"><div class="h-5 bg-gray-200 rounded-full w-16"></div><div class="flex gap-2"><div class="w-6 h-6 bg-gray-200 rounded"></div><div class="w-6 h-6 bg-gray-200 rounded"></div></div></div>
+        </div>
+        <div v-else-if="filtered.length === 0" class="p-8 text-center">
+          <div class="flex flex-col items-center justify-center">
+            <div class="text-gray-300 mb-3"><FolderKanban class="w-12 h-12" /></div>
+            <p class="text-gray-500 font-medium text-sm">Belum ada data project.</p>
+          </div>
+        </div>
+        <div v-for="p in filtered" :key="'m-'+p.id" class="p-4 bg-white hover:bg-gray-50 transition-colors cursor-pointer" @click="openProjectDetail(p)">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <h4 class="font-bold text-gray-900 text-base mb-1">{{ p.projectName }}</h4>
+              <p class="text-sm text-gray-500">{{ p.clientCompanyName }}</p>
+            </div>
+            <div class="flex gap-1" @click.stop>
+              <button @click="startEdit(p)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
+              <button @click="handleDelete(p.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+            </div>
+          </div>
+          <p class="text-xs text-gray-600 mb-3 line-clamp-2">{{ p.description || '-' }}</p>
+          <div><span :class="['px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase', p.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800']">{{ p.isActive ? 'Active' : 'Inactive' }}</span></div>
+        </div>
+      </div>
     </div>
 
     <!-- Project Detail Modal -->
@@ -117,8 +174,7 @@ import { useRoute } from 'vue-router'
 import { getProjects, createProject, updateProject, deleteProject } from '../api/projects'
 import { getClients } from '../api/clients'
 import { getClientSupports } from '../api/clientSupports'
-import { mockProjects, mockClients } from '../utils/mockData'
-import { Search, Plus, X, Pencil, Trash2 } from 'lucide-vue-next'
+import { Search, Plus, X, Pencil, Trash2, FolderKanban } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const confirmDialog = ref(null)
@@ -126,11 +182,14 @@ const route = useRoute()
 const projects = ref([])
 const clients = ref([])
 const showForm = ref(false)
+const loading = ref(true)
 const editingId = ref(null)
 const form = reactive({ projectName: '', description: '', clientId: '' })
 const search = ref('')
 const selectedProject = ref(null)
 const projectSupports = ref([])
+
+const activeClients = computed(() => clients.value.filter(c => c.isActive))
 
 const filtered = computed(() => projects.value.filter(p =>
   p.projectName.toLowerCase().includes(search.value.toLowerCase()) ||
@@ -138,8 +197,10 @@ const filtered = computed(() => projects.value.filter(p =>
 ))
 
 onMounted(async () => {
-  try { projects.value = (await getProjects()).data } catch { projects.value = mockProjects }
-  try { clients.value = (await getClients()).data } catch { clients.value = mockClients }
+  loading.value = true
+  try { projects.value = (await getProjects()).data } catch { projects.value = [] }
+  try { clients.value = (await getClients()).data } catch { clients.value = [] }
+  loading.value = false
   // Auto-fill client from query param
   if (route.query.clientId) {
     form.clientId = route.query.clientId
@@ -168,6 +229,18 @@ function startEdit(p) {
 }
 
 async function handleSubmit() {
+  const actionName = editingId.value ? 'Pembaruan' : 'Pembuatan'
+  const actionText = editingId.value ? 'memperbarui' : 'membuat'
+  const actionLabel = editingId.value ? 'Ya, Perbarui' : 'Ya, Buat'
+
+  const confirmed = await confirmDialog.value.open({ 
+    title: `Konfirmasi ${actionName} Project`, 
+    message: `Apakah Anda yakin ingin ${actionText} project ini?`,
+    confirmLabel: actionLabel,
+    confirmColor: 'blue'
+  })
+  if (!confirmed) return
+
   const payload = { projectName: form.projectName, description: form.description, clientId: Number(form.clientId) }
   try {
     if (editingId.value) await updateProject(editingId.value, payload)

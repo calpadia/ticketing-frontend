@@ -60,7 +60,9 @@ Frontend untuk sistem manajemen tiket IT Service Management (ITSM) berbasis B2B,
 
 ### Fitur UI
 
-- **Responsive layout** — Mobile-first: sidebar collapsible via hamburger menu di layar kecil, tabel dengan horizontal scroll
+- **Responsive layout** — Mobile-first: sidebar collapsible via hamburger menu di layar kecil, serta transformasi otomatis tabel data menjadi **Mobile Card Views** untuk aksesibilitas smartphone yang lebih baik
+- **Skeleton Loading** — Animasi *shimmering* yang modern saat memuat data, menggantikan teks "Loading..." statis
+- **Beautiful Empty States** — Ilustrasi informatif ber-ikon saat data kosong (seperti pada Tickets, Users, Clients, dll)
 - **Sidebar compact** — Fixed (tidak scroll), font compact, semua item muat dalam viewport
 - **Toast notifications** — Global toast untuk feedback sukses/error/warning
 - **Confirm dialog** — Konfirmasi sebelum aksi destructive (hapus)

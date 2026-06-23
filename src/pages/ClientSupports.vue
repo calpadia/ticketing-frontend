@@ -1,6 +1,11 @@
 <template>
   <div>
     <div class="mb-6">
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+        <router-link to="/client-management" class="hover:text-blue-600 transition-colors">Client Management</router-link>
+        <span class="text-gray-300">/</span>
+        <span class="font-medium text-gray-800">Support Assignment</span>
+      </div>
       <h2 class="text-2xl font-bold text-gray-900">Client Support Assignment</h2>
       <p class="text-gray-500 text-sm mt-1">Kelola support engineer yang bertanggung jawab untuk setiap client</p>
     </div>
@@ -10,7 +15,7 @@
       <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Client</label>
       <select v-model="selectedClientId" @change="loadSupports" class="w-full max-w-md border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
         <option value="">-- Pilih Client --</option>
-        <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+        <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
       </select>
     </div>
 
@@ -39,7 +44,7 @@
               <p class="text-xs text-gray-500">{{ s.supportUserEmail }}</p>
             </div>
             <p class="text-xs text-gray-400">{{ formatDate(s.assignedAt) }}</p>
-            <button @click="handleRemove(s.supportUserId)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700">
+            <button @click="handleRemove(s.supportUserId)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700" v-tooltip="'Hapus Support'">
               <Trash2 class="w-4 h-4" />
             </button>
           </div>
@@ -76,7 +81,6 @@ import { useRoute } from 'vue-router'
 import { getClients } from '../api/clients'
 import { getUsers } from '../api/users'
 import { getClientSupports, addClientSupports, removeClientSupports } from '../api/clientSupports'
-import { mockClients, mockUsers } from '../utils/mockData'
 import { Plus, Trash2 } from 'lucide-vue-next'
 
 const route = useRoute()
@@ -92,9 +96,11 @@ const availableSupports = computed(() => {
   return users.value.filter(u => (u.role === 'SUPPORT' || u.role === 'TECHNICAL_SUPPORT' || u.role === 'ADMIN') && !assignedIds.includes(u.id))
 })
 
+const activeClients = computed(() => clients.value.filter(c => c.isActive))
+
 onMounted(async () => {
-  try { clients.value = (await getClients()).data } catch { clients.value = mockClients }
-  try { users.value = (await getUsers()).data } catch { users.value = mockUsers }
+  try { clients.value = (await getClients()).data } catch { clients.value = [] }
+  try { users.value = (await getUsers()).data } catch { users.value = [] }
   // Auto-select client from query param
   if (route.query.clientId) {
     selectedClientId.value = route.query.clientId

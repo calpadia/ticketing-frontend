@@ -2,6 +2,11 @@
   <div>
     <ConfirmDialog ref="confirmDialog" />
     <div class="mb-6">
+      <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+        <router-link to="/client-management" class="hover:text-blue-600 transition-colors">Client Management</router-link>
+        <span class="text-gray-300">/</span>
+        <span class="font-medium text-gray-800">Client Onboarding</span>
+      </div>
       <h2 class="text-2xl font-bold text-gray-900">Client Onboarding</h2>
       <p class="text-gray-500 text-sm mt-1">Daftarkan client baru dalam {{ steps.length }} langkah</p>
     </div>

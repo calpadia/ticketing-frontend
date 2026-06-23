@@ -2,10 +2,16 @@
   <div>
     <div class="flex items-center justify-between mb-6">
       <div><h2 class="text-2xl font-bold text-gray-900">SLA Report</h2><p class="text-gray-500 text-sm mt-1">Service Level Agreement performance monitoring</p></div>
-      <div class="flex gap-2">
-        <input v-model="filterFrom" type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-        <input v-model="filterTo" type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
-        <button @click="loadReport" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 font-medium">Filter</button>
+      <div class="flex items-end gap-3">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">From Date</label>
+          <input v-model="filterFrom" type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">To Date</label>
+          <input v-model="filterTo" type="date" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+        <button @click="loadReport" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-blue-700 font-medium h-[38px]">Filter</button>
       </div>
     </div>
 
@@ -32,11 +38,11 @@
     </div>
 
     <!-- Per-client table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6" v-if="report?.clients">
-      <div class="px-6 py-4 border-b border-gray-200"><h3 class="text-lg font-semibold text-gray-900">SLA Performance by Client</h3></div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm">
-          <thead class="bg-gray-50">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-6 flex flex-col" v-if="report?.clients">
+      <div class="px-6 py-4 border-b border-gray-200 shrink-0"><h3 class="text-lg font-semibold text-gray-900">SLA Performance by Client</h3></div>
+      <div class="overflow-auto max-h-[65vh]">
+        <table class="w-full text-sm relative">
+          <thead class="bg-gray-50/95 backdrop-blur sticky top-0 z-10 shadow-sm">
             <tr class="text-left text-gray-600">
               <th class="px-6 py-3 font-medium">Client</th>
               <th class="px-6 py-3 font-medium">Tickets</th>
@@ -50,8 +56,8 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-100">
-            <tr v-if="report.clients.length === 0"><td colspan="9" class="text-center py-8 text-gray-500">No data available.</td></tr>
-            <tr v-for="c in report.clients" :key="c.clientId" class="hover:bg-gray-50">
+            <tr v-if="filteredClients.length === 0"><td colspan="9" class="text-center py-8 text-gray-500">No data available.</td></tr>
+            <tr v-for="c in paginatedClients" :key="c.clientId" class="hover:bg-gray-50">
               <td class="px-6 py-4 font-medium text-gray-900">{{ c.clientName }}</td>
               <td class="px-6 py-4">{{ c.totalTickets }}</td>
               <td class="px-6 py-4 text-green-600 font-medium">{{ c.response?.met || 0 }}</td>
@@ -64,6 +70,12 @@
             </tr>
           </tbody>
         </table>
+      </div>
+      <div v-if="totalPages > 1" class="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
+        <p class="text-sm text-gray-500">Showing {{ (currentPage - 1) * perPage + 1 }} to {{ Math.min(currentPage * perPage, filteredClients.length) }} of {{ filteredClients.length }}</p>
+        <div class="flex gap-1">
+          <button v-for="p in totalPages" :key="p" @click="currentPage = p" :class="['px-3 py-1 rounded text-sm', currentPage === p ? 'bg-blue-600 text-white' : 'bg-white border text-gray-600 hover:bg-gray-100']">{{ p }}</button>
+        </div>
       </div>
     </div>
 
@@ -104,6 +116,12 @@ const report = ref(null)
 const loading = ref(true)
 const filterFrom = ref('')
 const filterTo = ref('')
+const currentPage = ref(1)
+const perPage = 10
+
+const filteredClients = computed(() => report.value?.clients || [])
+const totalPages = computed(() => Math.ceil(filteredClients.value.length / perPage))
+const paginatedClients = computed(() => filteredClients.value.slice((currentPage.value - 1) * perPage, currentPage.value * perPage))
 
 const totalTickets = computed(() => report.value?.clients?.reduce((sum, c) => sum + c.totalTickets, 0) || 0)
 const overallResponseSla = computed(() => {

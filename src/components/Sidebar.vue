@@ -1,61 +1,90 @@
 <template>
   <aside :class="[
-    'bg-gray-900 text-white h-screen p-3 flex flex-col shrink-0 overflow-hidden transition-transform duration-300 z-50',
-    'w-56',
+    'bg-gray-900 text-white h-screen flex flex-col shrink-0 overflow-hidden z-50',
+    'transition-all duration-300 ease-in-out',
+    collapsed ? 'w-14' : 'w-56',
     'fixed lg:static',
     mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
   ]">
-    <div class="flex items-center justify-between mb-5 px-2">
-      <h1 class="text-sm font-bold">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-3 py-3 shrink-0">
+      <h1 v-if="!collapsed" class="text-sm font-bold whitespace-nowrap overflow-hidden">
         <span class="text-white">SYNODIC</span>
         <span class="text-blue-400 ml-1">SUPPORT</span>
       </h1>
+      <div v-if="collapsed" class="w-full flex justify-center">
+        <span class="text-blue-400 font-bold text-sm">S</span>
+      </div>
+      <!-- Toggle collapse (desktop) / close (mobile) -->
+      <button
+        @click="collapsed ? expand() : collapse()"
+        class="hidden lg:flex p-1 rounded hover:bg-gray-800 text-gray-400 shrink-0"
+        v-tooltip="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      >
+        <PanelLeftClose v-if="!collapsed" class="w-4 h-4" />
+        <PanelLeftOpen v-else class="w-4 h-4" />
+      </button>
       <button @click="$emit('close')" class="lg:hidden p-1 rounded hover:bg-gray-800 text-gray-400">
         <X class="w-4 h-4" />
       </button>
     </div>
-    <p class="text-[10px] text-gray-500 px-2 -mt-4 mb-4">Internal Ticketing Management</p>
 
-    <nav class="flex flex-col gap-0.5 flex-1">
-      <!-- Regular nav items -->
+    <p v-if="!collapsed" class="text-[10px] text-gray-500 px-3 -mt-2 mb-3 whitespace-nowrap overflow-hidden">
+      Internal Ticketing Management
+    </p>
+    <div v-else class="mb-3"></div>
+
+    <!-- Nav -->
+    <nav class="flex flex-col gap-0.5 flex-1 px-2 overflow-hidden">
       <template v-for="item in visibleNavItems" :key="item.to">
         <router-link
           :to="item.to"
           @click="$emit('close')"
+          v-tooltip="collapsed ? item.label : ''"
           :class="[
-            'flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors text-[13px]',
+            'flex items-center rounded-lg transition-colors text-[13px] relative group',
+            collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-2.5 py-2',
             isActive(item.to)
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
               : 'text-gray-300 hover:bg-gray-800 hover:text-white'
           ]"
         >
-          <component :is="item.icon" class="w-4 h-4" />
-          <span class="font-medium flex-1">{{ item.label }}</span>
-          <span v-if="item.to === '/chat' && totalUnread > 0" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+          <component :is="item.icon" class="w-4 h-4 shrink-0" />
+          <span v-if="!collapsed" class="font-medium flex-1 whitespace-nowrap overflow-hidden">{{ item.label }}</span>
+          <!-- Badges -->
+          <span v-if="!collapsed && item.to === '/chat' && totalUnread > 0" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
             {{ totalUnread > 99 ? '99+' : totalUnread }}
           </span>
-          <span v-if="item.to === '/tickets' && newTicketCount > 0" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+          <span v-if="collapsed && item.to === '/chat' && totalUnread > 0" class="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
+          <span v-if="!collapsed && item.to === '/tickets' && newTicketCount > 0" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
             {{ newTicketCount > 99 ? '99+' : newTicketCount }}
           </span>
+          <span v-if="collapsed && item.to === '/tickets' && newTicketCount > 0" class="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
         </router-link>
       </template>
 
-      <!-- Client Management dropdown (ADMIN only) -->
+      <!-- Client Management (ADMIN only) -->
       <div v-if="user?.role === 'ADMIN'">
-        <button
-          @click="clientMenuOpen = !clientMenuOpen"
+        <router-link
+          to="/client-management"
+          @click="!collapsed && (clientMenuOpen = true); $emit('close')"
+          v-tooltip="collapsed ? 'Client Management' : ''"
           :class="[
-            'flex items-center gap-2.5 px-2.5 py-2 rounded-lg transition-colors w-full text-[13px]',
+            'flex items-center rounded-lg transition-colors w-full text-[13px] relative group',
+            collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-2.5 py-2',
             isClientSectionActive
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
               : 'text-gray-300 hover:bg-gray-800 hover:text-white'
           ]"
         >
-          <Building2 class="w-4 h-4" />
-          <span class="font-medium flex-1 text-left">Client Management</span>
-          <ChevronDown :class="['w-3.5 h-3.5 transition-transform', clientMenuOpen ? 'rotate-180' : '']" />
-        </button>
-        <div v-show="clientMenuOpen" class="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-gray-700 pl-2.5">
+          <Building2 class="w-4 h-4 shrink-0" />
+          <span v-if="!collapsed" class="font-medium flex-1 text-left whitespace-nowrap overflow-hidden">Client Management</span>
+          <button v-if="!collapsed" @click.prevent.stop="clientMenuOpen = !clientMenuOpen" class="p-1 hover:bg-white/10 rounded-full transition-colors">
+            <ChevronDown :class="['w-3.5 h-3.5 transition-transform shrink-0', clientMenuOpen ? 'rotate-180' : '']" />
+          </button>
+        </router-link>
+        <!-- Sub items - only show when expanded -->
+        <div v-show="clientMenuOpen && !collapsed" class="ml-3 mt-0.5 flex flex-col gap-0.5 border-l border-gray-700 pl-2.5">
           <router-link
             v-for="sub in clientSubItems"
             :key="sub.to"
@@ -68,17 +97,18 @@
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'
             ]"
           >
-            <component :is="sub.icon" class="w-3.5 h-3.5" />
-            <span>{{ sub.label }}</span>
+            <component :is="sub.icon" class="w-3.5 h-3.5 shrink-0" />
+            <span class="whitespace-nowrap overflow-hidden">{{ sub.label }}</span>
           </router-link>
         </div>
       </div>
     </nav>
 
-    <div class="border-t border-gray-700 pt-3 mt-3">
-      <div class="px-2.5 mb-2">
+    <!-- User info + Logout -->
+    <div class="border-t border-gray-700 pt-3 mt-3 px-2 pb-3">
+      <div v-if="!collapsed" class="px-0.5 mb-2">
         <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-xs">
+          <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-xs shrink-0">
             {{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}
           </div>
           <div class="flex-1 min-w-0">
@@ -90,12 +120,21 @@
           {{ user?.role }}
         </span>
       </div>
+      <div v-else class="flex justify-center mb-2" v-tooltip="user?.name">
+        <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-xs">
+          {{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}
+        </div>
+      </div>
       <button
         @click="handleLogout"
-        class="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-gray-300 hover:bg-red-600/20 hover:text-red-300 transition-colors w-full text-[13px]"
+        v-tooltip="collapsed ? 'Logout' : ''"
+        :class="[
+          'flex items-center rounded-lg text-gray-300 hover:bg-red-600/20 hover:text-red-300 transition-colors w-full text-[13px]',
+          collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-2.5 py-2'
+        ]"
       >
-        <LogOut class="w-4 h-4" />
-        <span class="font-medium">Logout</span>
+        <LogOut class="w-4 h-4 shrink-0" />
+        <span v-if="!collapsed" class="font-medium">Logout</span>
       </button>
     </div>
   </aside>
@@ -106,12 +145,12 @@ import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notifications'
-import { LayoutDashboard, Ticket, Building2, ClipboardList, Users, FileBarChart, LogOut, BookOpen, MessageCircle, UserPlus, ChevronDown, FolderKanban, X } from 'lucide-vue-next'
+import { LayoutDashboard, Ticket, Building2, ClipboardList, Users, FileBarChart, LogOut, BookOpen, MessageCircle, UserPlus, ChevronDown, FolderKanban, X, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next'
 
-defineProps({
+const props = defineProps({
   mobileOpen: { type: Boolean, default: false }
 })
-defineEmits(['close'])
+defineEmits(['close', 'collapse-change'])
 
 const auth = useAuthStore()
 const notifications = useNotificationStore()
@@ -121,7 +160,17 @@ const user = computed(() => auth.user)
 const totalUnread = computed(() => notifications.totalUnread)
 const newTicketCount = computed(() => notifications.newTicketCount)
 
+const collapsed = ref(false)
 const clientMenuOpen = ref(true)
+
+function collapse() {
+  collapsed.value = true
+  clientMenuOpen.value = false
+}
+
+function expand() {
+  collapsed.value = false
+}
 
 const allNavItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'SUPPORT', 'TECHNICAL_SUPPORT', 'USER'] },
@@ -144,7 +193,7 @@ const visibleNavItems = computed(() =>
 )
 
 const isClientSectionActive = computed(() =>
-  clientSubItems.some(sub => route.path === sub.to || route.path.startsWith(sub.to + '/'))
+  route.path === '/client-management' || clientSubItems.some(sub => route.path === sub.to || route.path.startsWith(sub.to + '/'))
 )
 
 function isActive(to) {

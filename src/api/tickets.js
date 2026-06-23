@@ -14,6 +14,7 @@ export const createTicket = (data, files) => {
   formData.append('clientId', data.clientId)
   formData.append('requesterId', data.requesterId)
   if (data.projectId) formData.append('projectId', data.projectId)
+  if (data.productType) formData.append('productType', data.productType)
 
   if (files && files.length > 0) {
     files.forEach(file => formData.append('files', file))

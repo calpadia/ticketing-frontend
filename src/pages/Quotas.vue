@@ -21,9 +21,9 @@
 
     <div class="relative mb-4"><Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input v-model="search" type="text" placeholder="Search by client..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
 
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-gray-50">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-auto max-h-[70vh]">
+      <table class="w-full text-sm relative">
+        <thead class="bg-gray-50/95 backdrop-blur sticky top-0 z-10 shadow-sm">
           <tr class="text-left text-gray-600">
             <th class="px-6 py-3 font-medium">Client</th>
             <th class="px-6 py-3 font-medium">Year</th>
@@ -55,8 +55,8 @@
             </td>
             <td class="px-6 py-3">
               <div class="flex gap-2">
-                <button @click="startEdit(q)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
-                <button @click="handleDelete(q.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+                <button @click="startEdit(q)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Quota'"><Pencil class="w-4 h-4" /></button>
+                <button @click="handleDelete(q.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus Quota'"><Trash2 class="w-4 h-4" /></button>
               </div>
             </td>
           </tr>
@@ -67,11 +67,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getClientQuotas, createClientQuota, updateClientQuota, deleteClientQuota } from '../api/quotas'
 import { getClients } from '../api/clients'
-import { mockQuotas, mockClients } from '../utils/mockData'
 import { Search, Plus, X, Pencil, Trash2 } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 
@@ -89,14 +88,24 @@ const search = ref('')
 const filtered = computed(() => quotas.value.filter(q => q.clientCompanyName?.toLowerCase().includes(search.value.toLowerCase())))
 
 onMounted(async () => {
-  try { const res = await getClientQuotas(); quotas.value = res.data } catch { quotas.value = mockQuotas }
-  try { const res = await getClients(); clients.value = res.data } catch { clients.value = mockClients }
+  try { const res = await getClientQuotas(); quotas.value = res.data } catch { quotas.value = [] }
+  try { const res = await getClients(); clients.value = res.data } catch { clients.value = [] }
   // Auto-fill client from query param
   if (route.query.clientId) {
     form.clientId = route.query.clientId
     showForm.value = true
   }
+  window.addEventListener('keydown', handleGlobalKeydown)
 })
+
+onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
+
+function handleGlobalKeydown(e) {
+  if (e.key === 'Escape' && showForm.value) {
+    showForm.value = false
+    editingId.value = null
+  }
+}
 
 function toggleForm() { showForm.value = !showForm.value; editingId.value = null; Object.assign(form, { clientId: '', year: new Date().getFullYear(), pmQuota: 0, cmQuota: 0 }) }
 function startEdit(q) { editingId.value = q.id; Object.assign(form, { clientId: q.clientId, year: q.year, pmQuota: q.pmQuota, cmQuota: q.cmQuota }); showForm.value = true }

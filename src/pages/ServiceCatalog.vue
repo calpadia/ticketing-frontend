@@ -5,6 +5,11 @@
     <!-- Header -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
       <div>
+        <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+          <router-link to="/client-management" class="hover:text-blue-600 transition-colors">Client Management</router-link>
+          <span class="text-gray-300">/</span>
+          <span class="font-medium text-gray-800">Service & Quota</span>
+        </div>
         <h2 class="text-xl lg:text-2xl font-bold text-gray-900">Service & Quota</h2>
         <p class="text-gray-500 text-sm mt-1">Kelola layanan maintenance dan kuota setiap client</p>
       </div>
@@ -22,7 +27,7 @@
           <label class="block text-sm font-medium text-gray-700 mb-1">Client *</label>
           <select v-model="serviceForm.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" :disabled="editingServiceId !== null" required>
             <option value="">Select client</option>
-            <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+            <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
           </select>
         </div>
         <div>
@@ -98,150 +103,260 @@
     </div>
 
     <!-- Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <div class="overflow-x-auto">
-      <table class="w-full text-sm min-w-[600px]">
-        <thead class="bg-gray-50">
-          <tr class="text-left text-gray-600">
-            <th class="px-4 py-3 font-medium w-8"></th>
-            <th class="px-4 py-3 font-medium">Client</th>
-            <th class="px-4 py-3 font-medium">Services</th>
-            <th class="px-4 py-3 font-medium">Quota ({{ currentYear }})</th>
-            <th class="px-4 py-3 font-medium w-20">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
-          <tr v-if="filtered.length === 0">
-            <td colspan="5" class="text-center py-8 text-gray-500">No service catalog entries found.</td>
-          </tr>
-          <template v-for="item in filtered" :key="item.id">
-            <!-- Main row -->
-            <tr class="hover:bg-gray-50 cursor-pointer" @click="toggleExpand(item.clientId)">
-              <td class="px-4 py-4">
-                <ChevronRight :class="['w-4 h-4 text-gray-400 transition-transform', expandedClientId === item.clientId ? 'rotate-90' : '']" />
-              </td>
-              <td class="px-4 py-4">
-                <div class="flex items-center gap-2">
-                  <span class="font-medium text-gray-900">{{ item.clientCompanyName }}</span>
-                  <span v-if="item.notes" class="relative group">
-                    <Info class="w-3.5 h-3.5 text-gray-400 cursor-help" />
-                    <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">{{ item.notes }}</span>
-                  </span>
-                </div>
-              </td>
-              <td class="px-4 py-4">
-                <div class="flex gap-2">
-                  <span v-if="item.services?.includes('PM')" class="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-purple-100 text-purple-800 border-purple-200">PM</span>
-                  <span v-if="item.services?.includes('CM')" class="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-teal-100 text-teal-800 border-teal-200">CM</span>
-                </div>
-              </td>
-              <!-- Quota summary for current year -->
-              <td class="px-4 py-4">
-                <div v-if="getCurrentYearQuota(item.clientId)" class="flex flex-col gap-1.5">
-                  <div v-if="item.services?.includes('PM')" class="flex items-center gap-2">
-                    <span class="text-xs text-gray-500 w-7">PM</span>
-                    <div class="flex-1 h-2 bg-blue-100 rounded-full overflow-hidden max-w-[100px]">
-                      <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(getCurrentYearQuota(item.clientId), 'pm')" :style="{ width: getQuotaPercent(getCurrentYearQuota(item.clientId), 'pm') + '%' }"></div>
-                    </div>
-                    <span :class="['text-xs font-medium whitespace-nowrap', getQuotaTextClass(getCurrentYearQuota(item.clientId), 'pm')]">{{ getCurrentYearQuota(item.clientId).pmUsed }}/{{ getCurrentYearQuota(item.clientId).pmQuota }}</span>
-                    <AlertTriangle v-if="isQuotaWarning(getCurrentYearQuota(item.clientId), 'pm')" class="w-3.5 h-3.5 text-yellow-500" />
-                    <AlertCircle v-if="isQuotaFull(getCurrentYearQuota(item.clientId), 'pm')" class="w-3.5 h-3.5 text-red-500" />
-                  </div>
-                  <div v-if="item.services?.includes('CM')" class="flex items-center gap-2">
-                    <span class="text-xs text-gray-500 w-7">CM</span>
-                    <div class="flex-1 h-2 bg-orange-100 rounded-full overflow-hidden max-w-[100px]">
-                      <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(getCurrentYearQuota(item.clientId), 'cm')" :style="{ width: getQuotaPercent(getCurrentYearQuota(item.clientId), 'cm') + '%' }"></div>
-                    </div>
-                    <span :class="['text-xs font-medium whitespace-nowrap', getQuotaTextClass(getCurrentYearQuota(item.clientId), 'cm')]">{{ getCurrentYearQuota(item.clientId).cmUsed }}/{{ getCurrentYearQuota(item.clientId).cmQuota }}</span>
-                    <AlertTriangle v-if="isQuotaWarning(getCurrentYearQuota(item.clientId), 'cm')" class="w-3.5 h-3.5 text-yellow-500" />
-                    <AlertCircle v-if="isQuotaFull(getCurrentYearQuota(item.clientId), 'cm')" class="w-3.5 h-3.5 text-red-500" />
-                  </div>
-                </div>
-                <span v-else class="text-xs text-gray-400 italic">No quota</span>
-              </td>
-              <td class="px-4 py-4" @click.stop>
-                <div class="flex gap-1">
-                  <button @click="startEditService(item)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" title="Edit service"><Pencil class="w-4 h-4" /></button>
-                  <button @click="handleDeleteService(item.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" title="Delete service"><Trash2 class="w-4 h-4" /></button>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-auto max-h-[70vh]">
+        <table class="w-full text-sm min-w-[600px] relative">
+          <thead class="bg-gray-50/95 backdrop-blur sticky top-0 z-10 shadow-sm">
+            <tr class="text-left text-gray-600">
+              <th class="px-4 py-3 font-medium w-8"></th>
+              <th class="px-4 py-3 font-medium">Client</th>
+              <th class="px-4 py-3 font-medium">Services</th>
+              <th class="px-4 py-3 font-medium">Quota ({{ currentYear }})</th>
+              <th class="px-4 py-3 font-medium w-20">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            <tr v-if="loading" v-for="i in 5" :key="'skel'+i" class="animate-pulse">
+              <td class="px-4 py-4"><div class="w-4 h-4 bg-gray-200 rounded"></div></td>
+              <td class="px-4 py-4"><div class="h-4 bg-gray-200 rounded w-48"></div></td>
+              <td class="px-4 py-4"><div class="flex gap-2"><div class="h-5 bg-gray-200 rounded-full w-10"></div><div class="h-5 bg-gray-200 rounded-full w-10"></div></div></td>
+              <td class="px-4 py-4"><div class="h-6 bg-gray-200 rounded w-32"></div></td>
+              <td class="px-4 py-4"><div class="flex gap-2"><div class="w-6 h-6 bg-gray-200 rounded"></div><div class="w-6 h-6 bg-gray-200 rounded"></div></div></td>
+            </tr>
+            <tr v-else-if="filtered.length === 0">
+              <td colspan="5" class="text-center py-16">
+                <div class="flex flex-col items-center justify-center">
+                  <div class="text-gray-300 mb-3"><Layers class="w-16 h-16" /></div>
+                  <p class="text-gray-500 font-medium">Belum ada layanan & quota terdaftar.</p>
+                  <p class="text-gray-400 text-sm mt-1">Klik tombol Add Service untuk menambahkan layanan ke client.</p>
                 </div>
               </td>
             </tr>
-            <!-- Expanded quota detail -->
-            <tr v-if="expandedClientId === item.clientId">
-              <td colspan="5" class="px-6 py-4 bg-gray-50/70">
-                <div class="ml-4">
-                  <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-sm font-semibold text-gray-700">Quota Detail — {{ item.clientCompanyName }}</h4>
-                    <button @click="openQuotaForm(item.clientId, item.clientCompanyName)" class="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 font-medium">
-                      <Plus class="w-3 h-3" /> Add Quota
-                    </button>
+            <template v-for="item in filtered" :key="item.id">
+              <!-- Main row -->
+              <tr class="hover:bg-gray-50 cursor-pointer" @click="toggleExpand(item.clientId)">
+                <td class="px-4 py-4">
+                  <ChevronRight :class="['w-4 h-4 text-gray-400 transition-transform', expandedClientId === item.clientId ? 'rotate-90' : '']" />
+                </td>
+                <td class="px-4 py-4">
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium text-gray-900">{{ item.clientCompanyName }}</span>
+                    <span v-if="item.notes" class="relative group">
+                      <Info class="w-3.5 h-3.5 text-gray-400 cursor-help" />
+                      <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">{{ item.notes }}</span>
+                    </span>
                   </div>
-                  <!-- Notes display -->
-                  <p v-if="item.notes" class="text-xs text-gray-500 mb-3 italic">📝 {{ item.notes }}</p>
-                  <div v-if="getClientQuotaList(item.clientId).length === 0" class="text-sm text-gray-500 italic py-2">
-                    Belum ada quota untuk client ini.
+                </td>
+                <td class="px-4 py-4">
+                  <div class="flex gap-2">
+                    <span v-if="item.services?.includes('PM')" class="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-purple-100 text-purple-800 border-purple-200">PM</span>
+                    <span v-if="item.services?.includes('CM')" class="px-2.5 py-0.5 rounded-full text-xs font-medium border bg-teal-100 text-teal-800 border-teal-200">CM</span>
                   </div>
-                  <div v-else class="space-y-3">
-                    <div v-for="q in getClientQuotaList(item.clientId)" :key="q.id" class="bg-white border border-gray-200 rounded-lg p-4">
-                      <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm font-semibold text-gray-800">Tahun {{ q.year }}</span>
-                        <div class="flex gap-1">
-                          <button @click="startEditQuota(q, item.clientCompanyName)" class="p-1 rounded hover:bg-blue-50 text-blue-600" title="Edit quota"><Pencil class="w-3.5 h-3.5" /></button>
-                          <button @click="handleDeleteQuota(q.id)" class="p-1 rounded hover:bg-red-50 text-red-600" title="Delete quota"><Trash2 class="w-3.5 h-3.5" /></button>
-                        </div>
+                </td>
+                <!-- Quota summary for current year -->
+                <td class="px-4 py-4">
+                  <div v-if="getCurrentYearQuota(item.clientId)" class="flex flex-col gap-1.5">
+                    <div v-if="item.services?.includes('PM')" class="flex items-center gap-2">
+                      <span class="text-xs text-gray-500 w-7">PM</span>
+                      <div class="flex-1 h-2 bg-blue-100 rounded-full overflow-hidden max-w-[100px]">
+                        <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(getCurrentYearQuota(item.clientId), 'pm')" :style="{ width: getQuotaPercent(getCurrentYearQuota(item.clientId), 'pm') + '%' }"></div>
                       </div>
-                      <div class="grid grid-cols-2 gap-4">
-                        <!-- PM Progress -->
-                        <div v-if="item.services?.includes('PM')">
-                          <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs text-gray-500">PM</span>
-                            <span :class="['text-xs font-medium', getQuotaTextClass(q, 'pm')]">{{ q.pmUsed }}/{{ q.pmQuota }}</span>
+                      <span :class="['text-xs font-medium whitespace-nowrap', getQuotaTextClass(getCurrentYearQuota(item.clientId), 'pm')]">{{ getCurrentYearQuota(item.clientId).pmUsed }}/{{ getCurrentYearQuota(item.clientId).pmQuota }}</span>
+                      <AlertTriangle v-if="isQuotaWarning(getCurrentYearQuota(item.clientId), 'pm')" class="w-3.5 h-3.5 text-yellow-500" />
+                      <AlertCircle v-if="isQuotaFull(getCurrentYearQuota(item.clientId), 'pm')" class="w-3.5 h-3.5 text-red-500" />
+                    </div>
+                    <div v-if="item.services?.includes('CM')" class="flex items-center gap-2">
+                      <span class="text-xs text-gray-500 w-7">CM</span>
+                      <div class="flex-1 h-2 bg-orange-100 rounded-full overflow-hidden max-w-[100px]">
+                        <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(getCurrentYearQuota(item.clientId), 'cm')" :style="{ width: getQuotaPercent(getCurrentYearQuota(item.clientId), 'cm') + '%' }"></div>
+                      </div>
+                      <span :class="['text-xs font-medium whitespace-nowrap', getQuotaTextClass(getCurrentYearQuota(item.clientId), 'cm')]">{{ getCurrentYearQuota(item.clientId).cmUsed }}/{{ getCurrentYearQuota(item.clientId).cmQuota }}</span>
+                      <AlertTriangle v-if="isQuotaWarning(getCurrentYearQuota(item.clientId), 'cm')" class="w-3.5 h-3.5 text-yellow-500" />
+                      <AlertCircle v-if="isQuotaFull(getCurrentYearQuota(item.clientId), 'cm')" class="w-3.5 h-3.5 text-red-500" />
+                    </div>
+                  </div>
+                  <span v-else class="text-xs text-gray-400 italic">No quota</span>
+                </td>
+                <td class="px-4 py-4" @click.stop>
+                  <div class="flex gap-1">
+                    <button @click="startEditService(item)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Service'"><Pencil class="w-4 h-4" /></button>
+                    <button @click="handleDeleteService(item.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus Service'"><Trash2 class="w-4 h-4" /></button>
+                  </div>
+                </td>
+              </tr>
+              <!-- Expanded quota detail -->
+              <tr v-if="expandedClientId === item.clientId">
+                <td colspan="5" class="px-6 py-4 bg-gray-50/70">
+                  <div class="ml-4">
+                    <div class="flex items-center justify-between mb-3">
+                      <h4 class="text-sm font-semibold text-gray-700">Quota Detail — {{ item.clientCompanyName }}</h4>
+                      <button @click="openQuotaForm(item.clientId, item.clientCompanyName)" class="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 font-medium">
+                        <Plus class="w-3 h-3" /> Add Quota
+                      </button>
+                    </div>
+                    <!-- Notes display -->
+                    <p v-if="item.notes" class="text-xs text-gray-500 mb-3 italic">📝 {{ item.notes }}</p>
+                    <div v-if="getClientQuotaList(item.clientId).length === 0" class="text-sm text-gray-500 italic py-2">
+                      Belum ada quota untuk client ini.
+                    </div>
+                    <div v-else class="space-y-3">
+                      <div v-for="q in getClientQuotaList(item.clientId)" :key="q.id" class="bg-white border border-gray-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                          <span class="text-sm font-semibold text-gray-800">Tahun {{ q.year }}</span>
+                          <div class="flex gap-1">
+                            <button @click="startEditQuota(q, item.clientCompanyName)" class="p-1 rounded hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Quota'"><Pencil class="w-3.5 h-3.5" /></button>
+                            <button @click="handleDeleteQuota(q.id)" class="p-1 rounded hover:bg-red-50 text-red-600" v-tooltip="'Hapus Quota'"><Trash2 class="w-3.5 h-3.5" /></button>
                           </div>
-                          <div class="h-2.5 bg-blue-100 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(q, 'pm')" :style="{ width: getQuotaPercent(q, 'pm') + '%' }"></div>
-                          </div>
-                          <p class="text-xs text-gray-400 mt-1">Sisa: {{ Math.max(q.pmQuota - q.pmUsed, 0) }}</p>
                         </div>
-                        <!-- CM Progress -->
-                        <div v-if="item.services?.includes('CM')">
-                          <div class="flex items-center justify-between mb-1">
-                            <span class="text-xs text-gray-500">CM</span>
-                            <span :class="['text-xs font-medium', getQuotaTextClass(q, 'cm')]">{{ q.cmUsed }}/{{ q.cmQuota }}</span>
+                        <div class="grid grid-cols-2 gap-4">
+                          <!-- PM Progress -->
+                          <div v-if="item.services?.includes('PM')">
+                            <div class="flex items-center justify-between mb-1">
+                              <span class="text-xs text-gray-500">PM</span>
+                              <span :class="['text-xs font-medium', getQuotaTextClass(q, 'pm')]">{{ q.pmUsed }}/{{ q.pmQuota }}</span>
+                            </div>
+                            <div class="h-2.5 bg-blue-100 rounded-full overflow-hidden">
+                              <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(q, 'pm')" :style="{ width: getQuotaPercent(q, 'pm') + '%' }"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Sisa: {{ Math.max(q.pmQuota - q.pmUsed, 0) }}</p>
                           </div>
-                          <div class="h-2.5 bg-orange-100 rounded-full overflow-hidden">
-                            <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(q, 'cm')" :style="{ width: getQuotaPercent(q, 'cm') + '%' }"></div>
+                          <!-- CM Progress -->
+                          <div v-if="item.services?.includes('CM')">
+                            <div class="flex items-center justify-between mb-1">
+                              <span class="text-xs text-gray-500">CM</span>
+                              <span :class="['text-xs font-medium', getQuotaTextClass(q, 'cm')]">{{ q.cmUsed }}/{{ q.cmQuota }}</span>
+                            </div>
+                            <div class="h-2.5 bg-orange-100 rounded-full overflow-hidden">
+                              <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(q, 'cm')" :style="{ width: getQuotaPercent(q, 'cm') + '%' }"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1">Sisa: {{ Math.max(q.cmQuota - q.cmUsed, 0) }}</p>
                           </div>
-                          <p class="text-xs text-gray-400 mt-1">Sisa: {{ Math.max(q.cmQuota - q.cmUsed, 0) }}</p>
                         </div>
                       </div>
                     </div>
                   </div>
+                </td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="md:hidden flex flex-col divide-y divide-gray-100 overflow-auto max-h-[70vh]">
+        <div v-if="loading" v-for="i in 5" :key="'m-skel-'+i" class="p-4 animate-pulse">
+          <div class="h-5 bg-gray-200 rounded w-2/3 mb-2"></div>
+          <div class="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div class="h-4 bg-gray-200 rounded w-full mb-2"></div>
+          <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div class="flex justify-end"><div class="flex gap-2"><div class="w-6 h-6 bg-gray-200 rounded"></div><div class="w-6 h-6 bg-gray-200 rounded"></div></div></div>
+        </div>
+        <div v-else-if="filtered.length === 0" class="p-8 text-center">
+          <div class="flex flex-col items-center justify-center">
+            <div class="text-gray-300 mb-3"><Layers class="w-12 h-12" /></div>
+            <p class="text-gray-500 font-medium text-sm">Belum ada layanan & quota.</p>
+          </div>
+        </div>
+        <div v-for="item in filtered" :key="'m-'+item.id" class="p-4 bg-white transition-colors">
+          <div class="flex items-start justify-between mb-2">
+            <div>
+              <h4 class="font-bold text-gray-900 text-base mb-1">{{ item.clientCompanyName }}</h4>
+              <div class="flex gap-2 mb-2">
+                <span v-if="item.services?.includes('PM')" class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border bg-purple-100 text-purple-800 border-purple-200">PM</span>
+                <span v-if="item.services?.includes('CM')" class="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase border bg-teal-100 text-teal-800 border-teal-200">CM</span>
+              </div>
+            </div>
+            <div class="flex gap-1">
+              <button @click="startEditService(item)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
+              <button @click="handleDeleteService(item.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+            </div>
+          </div>
+          <div v-if="item.notes" class="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded italic">📝 {{ item.notes }}</div>
+          
+          <!-- Current Year Quota Summary Mobile -->
+          <div class="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-100">
+            <p class="text-xs font-semibold text-gray-700 mb-2">Quota {{ currentYear }}</p>
+            <div v-if="getCurrentYearQuota(item.clientId)" class="flex flex-col gap-2">
+              <div v-if="item.services?.includes('PM')" class="flex items-center gap-2">
+                <span class="text-[10px] text-gray-500 w-6">PM</span>
+                <div class="flex-1 h-1.5 bg-blue-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(getCurrentYearQuota(item.clientId), 'pm')" :style="{ width: getQuotaPercent(getCurrentYearQuota(item.clientId), 'pm') + '%' }"></div>
                 </div>
-              </td>
-            </tr>
-          </template>
-        </tbody>
-      </table>
+                <span :class="['text-[10px] font-medium whitespace-nowrap', getQuotaTextClass(getCurrentYearQuota(item.clientId), 'pm')]">{{ getCurrentYearQuota(item.clientId).pmUsed }}/{{ getCurrentYearQuota(item.clientId).pmQuota }}</span>
+              </div>
+              <div v-if="item.services?.includes('CM')" class="flex items-center gap-2">
+                <span class="text-[10px] text-gray-500 w-6">CM</span>
+                <div class="flex-1 h-1.5 bg-orange-100 rounded-full overflow-hidden">
+                  <div class="h-full rounded-full transition-all" :class="getQuotaBarClass(getCurrentYearQuota(item.clientId), 'cm')" :style="{ width: getQuotaPercent(getCurrentYearQuota(item.clientId), 'cm') + '%' }"></div>
+                </div>
+                <span :class="['text-[10px] font-medium whitespace-nowrap', getQuotaTextClass(getCurrentYearQuota(item.clientId), 'cm')]">{{ getCurrentYearQuota(item.clientId).cmUsed }}/{{ getCurrentYearQuota(item.clientId).cmQuota }}</span>
+              </div>
+            </div>
+            <span v-else class="text-xs text-gray-400 italic">No quota</span>
+          </div>
+
+          <button @click="toggleExpand(item.clientId)" class="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded flex items-center justify-center gap-1 transition-colors">
+            {{ expandedClientId === item.clientId ? 'Tutup Detail Quota' : 'Lihat Semua Quota' }}
+            <ChevronRight :class="['w-3.5 h-3.5 transition-transform', expandedClientId === item.clientId ? '-rotate-90' : 'rotate-90']" />
+          </button>
+
+          <!-- Expanded Quota on Mobile -->
+          <div v-if="expandedClientId === item.clientId" class="mt-3">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs font-semibold text-gray-700">History Quota</h4>
+              <button @click="openQuotaForm(item.clientId, item.clientCompanyName)" class="flex items-center gap-1 text-[10px] bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 font-medium">
+                <Plus class="w-3 h-3" /> Add Quota
+              </button>
+            </div>
+            <div v-if="getClientQuotaList(item.clientId).length === 0" class="text-xs text-gray-500 italic py-1">Belum ada quota.</div>
+            <div v-else class="space-y-2">
+              <div v-for="q in getClientQuotaList(item.clientId)" :key="q.id" class="bg-white border border-gray-200 rounded p-3">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-semibold text-gray-800">Tahun {{ q.year }}</span>
+                  <div class="flex gap-1">
+                    <button @click="startEditQuota(q, item.clientCompanyName)" class="p-1 rounded bg-blue-50 text-blue-600"><Pencil class="w-3 h-3" /></button>
+                    <button @click="handleDeleteQuota(q.id)" class="p-1 rounded bg-red-50 text-red-600"><Trash2 class="w-3 h-3" /></button>
+                  </div>
+                </div>
+                <div class="flex flex-col gap-2">
+                  <div v-if="item.services?.includes('PM')">
+                    <div class="flex items-center justify-between mb-0.5"><span class="text-[10px] text-gray-500">PM</span><span :class="['text-[10px] font-medium', getQuotaTextClass(q, 'pm')]">{{ q.pmUsed }}/{{ q.pmQuota }} (Sisa: {{ Math.max(q.pmQuota - q.pmUsed, 0) }})</span></div>
+                    <div class="h-1.5 bg-blue-100 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all" :class="getQuotaBarClass(q, 'pm')" :style="{ width: getQuotaPercent(q, 'pm') + '%' }"></div></div>
+                  </div>
+                  <div v-if="item.services?.includes('CM')">
+                    <div class="flex items-center justify-between mb-0.5"><span class="text-[10px] text-gray-500">CM</span><span :class="['text-[10px] font-medium', getQuotaTextClass(q, 'cm')]">{{ q.cmUsed }}/{{ q.cmQuota }} (Sisa: {{ Math.max(q.cmQuota - q.cmUsed, 0) }})</span></div>
+                    <div class="h-1.5 bg-orange-100 rounded-full overflow-hidden"><div class="h-full rounded-full transition-all" :class="getQuotaBarClass(q, 'cm')" :style="{ width: getQuotaPercent(q, 'cm') + '%' }"></div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { getServiceCatalogs, createServiceCatalog, updateServiceCatalog, deleteServiceCatalog } from '../api/serviceCatalog'
 import { getClientQuotas, createClientQuota, updateClientQuota, deleteClientQuota } from '../api/quotas'
 import { getClients } from '../api/clients'
-import { mockClients } from '../utils/mockData'
-import { Search, Plus, X, Pencil, Trash2, ChevronRight, Info, AlertTriangle, AlertCircle } from 'lucide-vue-next'
+import { Search, Plus, X, Pencil, Trash2, ChevronRight, Info, AlertTriangle, AlertCircle, Layers } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import { useToastStore } from '../stores/toast'
 
 const confirmDialog = ref(null)
+const toast = useToastStore()
+const route = useRoute()
 const clients = ref([])
 const catalog = ref([])
 const quotas = ref([])
 const search = ref('')
 const currentYear = new Date().getFullYear()
+const loading = ref(true)
 
 // Expand state
 const expandedClientId = ref(null)
@@ -265,6 +380,8 @@ const quotaForm = reactive({ year: currentYear, pmQuota: 0, cmQuota: 0 })
 const filtered = computed(() =>
   catalog.value.filter(item => item.clientCompanyName?.toLowerCase().includes(search.value.toLowerCase()))
 )
+
+const activeClients = computed(() => clients.value.filter(c => c.isActive))
 
 // ========== Helpers ==========
 function getClientQuotaList(clientId) {
@@ -310,10 +427,32 @@ function getQuotaTextClass(q, type) {
 }
 
 onMounted(async () => {
-  try { clients.value = (await getClients()).data } catch { clients.value = mockClients }
+  loading.value = true
+  try { clients.value = (await getClients()).data } catch { clients.value = [] }
   try { catalog.value = (await getServiceCatalogs()).data } catch { catalog.value = [] }
   try { quotas.value = (await getClientQuotas()).data } catch { quotas.value = [] }
+  loading.value = false
+  window.addEventListener('keydown', handleGlobalKeydown)
+
+  // Auto-expand client if query param is present
+  if (route.query.clientId) {
+    const id = Number(route.query.clientId)
+    const client = clients.value.find(c => c.id === id)
+    if (client) {
+      search.value = client.companyName
+      expandedClientId.value = id
+    }
+  }
 })
+
+onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
+
+function handleGlobalKeydown(e) {
+  if (e.key === 'Escape') {
+    if (showServiceForm.value) { showServiceForm.value = false; editingServiceId.value = null }
+    if (showQuotaForm.value) { showQuotaForm.value = false; editingQuotaId.value = null }
+  }
+}
 
 // ========== Expand ==========
 function toggleExpand(clientId) {
@@ -345,13 +484,26 @@ async function handleServiceSubmit() {
   if (serviceForm.services.length === 0) { serviceError.value = 'Please select at least one service'; return }
   serviceError.value = ''
 
+  const actionName = editingServiceId.value ? 'Pembaruan' : 'Pembuatan'
+  const actionText = editingServiceId.value ? 'memperbarui' : 'membuat'
+  const actionLabel = editingServiceId.value ? 'Ya, Perbarui' : 'Ya, Buat'
+
+  const confirmed = await confirmDialog.value.open({ 
+    title: `Konfirmasi ${actionName} Service`, 
+    message: `Apakah Anda yakin ingin ${actionText} service ini?`,
+    confirmLabel: actionLabel,
+    confirmColor: 'blue'
+  })
+  if (!confirmed) return
+
   try {
     if (editingServiceId.value) {
       await updateServiceCatalog(editingServiceId.value, { services: serviceForm.services, notes: serviceForm.notes })
+      toast.success('Service berhasil diperbarui')
     } else {
       await createServiceCatalog({ clientId: Number(serviceForm.clientId), services: serviceForm.services, notes: serviceForm.notes })
+      toast.success('Service berhasil ditambahkan')
 
-      // Auto-create quota if checked
       if (createQuotaAfter.value) {
         const quotaPayload = {
           clientId: Number(serviceForm.clientId),
@@ -359,7 +511,12 @@ async function handleServiceSubmit() {
           pmQuota: serviceForm.services.includes('PM') ? autoQuotaForm.pmQuota : 0,
           cmQuota: serviceForm.services.includes('CM') ? autoQuotaForm.cmQuota : 0
         }
-        try { await createClientQuota(quotaPayload) } catch {}
+        try {
+          await createClientQuota(quotaPayload)
+          toast.success('Quota untuk tahun ini berhasil dibuat')
+        } catch (qErr) {
+          toast.warning(qErr?.response?.data?.message || 'Service ditambahkan, tapi gagal membuat quota')
+        }
         quotas.value = (await getClientQuotas()).data
       }
     }
@@ -371,6 +528,7 @@ async function handleServiceSubmit() {
     Object.assign(autoQuotaForm, { pmQuota: 0, cmQuota: 0 })
   } catch (err) {
     serviceError.value = err.response?.data?.message || 'Failed to save service catalog.'
+    toast.error(serviceError.value)
   }
 }
 
@@ -380,7 +538,10 @@ async function handleDeleteService(id) {
   try {
     await deleteServiceCatalog(id)
     catalog.value = (await getServiceCatalogs()).data
-  } catch {}
+    toast.success('Service berhasil dihapus')
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Gagal menghapus service')
+  }
 }
 
 // ========== Quota CRUD ==========
@@ -412,6 +573,19 @@ function closeQuotaForm() {
 
 async function handleQuotaSubmit() {
   quotaError.value = ''
+
+  const actionName = editingQuotaId.value ? 'Pembaruan' : 'Pembuatan'
+  const actionText = editingQuotaId.value ? 'memperbarui' : 'membuat'
+  const actionLabel = editingQuotaId.value ? 'Ya, Perbarui' : 'Ya, Buat'
+
+  const confirmed = await confirmDialog.value.open({ 
+    title: `Konfirmasi ${actionName} Quota`, 
+    message: `Apakah Anda yakin ingin ${actionText} quota ini?`,
+    confirmLabel: actionLabel,
+    confirmColor: 'blue'
+  })
+  if (!confirmed) return
+
   const payload = {
     clientId: quotaFormClientId.value,
     year: quotaForm.year,
@@ -421,14 +595,17 @@ async function handleQuotaSubmit() {
   try {
     if (editingQuotaId.value) {
       await updateClientQuota(editingQuotaId.value, payload)
+      toast.success('Quota berhasil diperbarui')
     } else {
       await createClientQuota(payload)
+      toast.success('Quota berhasil ditambahkan')
     }
     quotas.value = (await getClientQuotas()).data
     showQuotaForm.value = false
     editingQuotaId.value = null
   } catch (err) {
     quotaError.value = err.response?.data?.message || 'Failed to save quota.'
+    toast.error(quotaError.value)
   }
 }
 
@@ -438,6 +615,9 @@ async function handleDeleteQuota(id) {
   try {
     await deleteClientQuota(id)
     quotas.value = (await getClientQuotas()).data
-  } catch {}
+    toast.success('Quota berhasil dihapus')
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Gagal menghapus quota')
+  }
 }
 </script>

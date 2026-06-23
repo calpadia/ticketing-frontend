@@ -112,6 +112,24 @@
             <p class="text-sm text-gray-700 whitespace-pre-wrap">{{ selectedItem.description }}</p>
           </div>
 
+          <!-- Resolution notes from support -->
+          <div v-if="resolutionLog" class="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div class="flex items-center gap-2 mb-2">
+              <CheckCircle class="w-4 h-4 text-green-600" />
+              <p class="text-xs font-semibold text-green-700 uppercase tracking-wide">Catatan Resolved</p>
+            </div>
+            <p v-if="resolutionLog.notes" class="text-sm text-gray-800 whitespace-pre-wrap">{{ resolutionLog.notes }}</p>
+            <p v-else class="text-sm text-gray-400 italic">Tidak ada catatan.</p>
+            <div class="flex items-center gap-2 mt-2 text-xs text-gray-500">
+              <span>Oleh: <strong>{{ resolutionLog.changedByName }}</strong></span>
+              <span>•</span>
+              <span>{{ formatDate(resolutionLog.changedAt) }}</span>
+            </div>
+          </div>
+          <div v-else-if="loadingResolution" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p class="text-sm text-gray-400 italic">Memuat catatan resolved...</p>
+          </div>
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-xs text-gray-500 uppercase tracking-wide">Client</p>
@@ -134,10 +152,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { getTickets } from '../api/tickets'
-import { mockTickets } from '../utils/mockData'
-import { Search, BookOpen, X } from 'lucide-vue-next'
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
+import { getTickets, getTicketProgress } from '../api/tickets'
+import { Search, BookOpen, X, CheckCircle } from 'lucide-vue-next'
 import PriorityBadge from '../components/PriorityBadge.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 
@@ -148,6 +165,8 @@ const filterPriority = ref('')
 const currentPage = ref(1)
 const perPage = 8
 const selectedItem = ref(null)
+const resolutionLog = ref(null)
+const loadingResolution = ref(false)
 
 // Only show RESOLVED and CLOSED tickets as knowledge base
 const knowledgeItems = computed(() =>
@@ -172,14 +191,40 @@ const paginated = computed(() => filtered.value.slice((currentPage.value - 1) * 
 
 watch([search, filterType, filterPriority], () => { currentPage.value = 1 })
 
+// Fetch resolution notes when detail is opened
+watch(selectedItem, async (item) => {
+  resolutionLog.value = null
+  if (!item) return
+  loadingResolution.value = true
+  try {
+    const res = await getTicketProgress(item.id)
+    const logs = res.data || []
+    // Find the log entry where status changed to RESOLVED
+    resolutionLog.value = logs.find(l => l.toStatus === 'RESOLVED') || null
+  } catch {
+    resolutionLog.value = null
+  } finally {
+    loadingResolution.value = false
+  }
+})
+
 onMounted(async () => {
   try {
     const res = await getTickets()
     allTickets.value = res.data
   } catch {
-    allTickets.value = mockTickets
+    allTickets.value = []
   }
+  window.addEventListener('keydown', handleGlobalKeydown)
 })
+
+onUnmounted(() => window.removeEventListener('keydown', handleGlobalKeydown))
+
+function handleGlobalKeydown(e) {
+  if (e.key === 'Escape' && selectedItem.value) {
+    selectedItem.value = null
+  }
+}
 
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
