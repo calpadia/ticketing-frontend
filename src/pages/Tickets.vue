@@ -70,9 +70,6 @@
                 <td class="px-6 py-3">
                   <div class="flex items-center gap-2">
                     <span class="font-medium text-gray-900">{{ t.title }}</span>
-                    <span v-if="notifications.getUnread(t.id) > 0" class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-green-500 text-white text-[10px] font-bold shadow-sm">
-                      {{ notifications.getUnread(t.id) }}
-                    </span>
                     <span v-if="t.isRead === false" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse">NEW</span>
                   </div>
                 </td>
@@ -110,7 +107,6 @@
             </div>
             <h4 class="font-medium text-gray-900 mb-1 flex items-center gap-2">
               {{ t.title }}
-              <span v-if="notifications.getUnread(t.id) > 0" class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-green-500 text-white text-[10px] font-bold shadow-sm">{{ notifications.getUnread(t.id) }}</span>
               <span v-if="t.isRead === false" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse shrink-0">NEW</span>
             </h4>
             <p class="text-sm text-gray-500 mb-3">{{ t.clientCompanyName }}</p>

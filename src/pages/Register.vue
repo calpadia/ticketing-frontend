@@ -65,12 +65,7 @@ async function handleSubmit() {
     auth.loginUser(res.data)
     router.push('/')
   } catch (err) {
-    if (!err.response) {
-      auth.loginUser({ token: 'demo-token', id: 1, name: form.name, email: form.email, phone: form.phone, role: form.role })
-      router.push('/')
-      return
-    }
-    error.value = err.response?.data?.message || 'Registration failed.'
+    error.value = err.response?.data?.message || 'Gagal mendaftar. Silakan coba lagi.'
   } finally {
     loading.value = false
   }

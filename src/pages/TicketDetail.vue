@@ -309,6 +309,7 @@ import { ChevronLeft, AlertCircle, FileText, Paperclip, Download, Clock, Activit
 import StatusBadge from '../components/StatusBadge.vue'
 import PriorityBadge from '../components/PriorityBadge.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import { triggerNotification } from '../utils/notify'
 
 const route = useRoute()
 const router = useRouter()
@@ -482,6 +483,17 @@ function connectChat(ticketId) {
         if (!messages.value.find(m => m.id === data.id)) {
           messages.value.push(data)
           scrollToBottom()
+          
+          // Perbaikan: Update last_read_at di Backend agar pesan ini tidak dianggap unread
+          if (data.senderId !== currentUserId.value) {
+            if (document.visibilityState === 'visible') {
+              notifications.markTicketSeen(ticketId)
+            } else {
+              // Jika tab sedang background, tampilkan notifikasi push
+              notifications.addUnread()
+              triggerNotification(`Pesan baru di Tiket #${ticket.value?.ticketNumber || ticketId}`, data.content || 'Lampiran baru diterima')
+            }
+          }
         }
       })
     },
@@ -492,9 +504,23 @@ function connectChat(ticketId) {
 }
 
 // ========== Lifecycle ==========
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    const id = route.params.id
+    if (id) notifications.markTicketSeen(id)
+  }
+}
+
 onMounted(async () => {
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+  
+  // Request permission untuk browser notification
+  if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission()
+  }
+
   const id = route.params.id
-  notifications.clearUnread(id)
+  notifications.markTicketSeen(id)
   try {
     const res = await getTicketById(id)
     ticket.value = res.data
@@ -526,9 +552,14 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
   if (stompClient) stompClient.deactivate()
   if (slaTimer) clearInterval(slaTimer)
   if (timerInterval) clearInterval(timerInterval)
+  
+  // Pastikan waktu keluar juga tercatat sebagai last_read_at
+  const id = route.params.id
+  if (id) notifications.markTicketSeen(id)
 })
 
 // ========== Actions ==========

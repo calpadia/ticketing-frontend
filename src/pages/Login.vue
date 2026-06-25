@@ -52,17 +52,7 @@
         </button>
       </form>
 
-      <!-- Demo Access -->
-      <div class="mt-6">
-        <div class="relative">
-          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-100"></div></div>
-          <div class="relative flex justify-center text-xs"><span class="px-2 bg-white text-gray-400">Demo Access</span></div>
-        </div>
-        <div class="mt-4 grid grid-cols-2 gap-3">
-          <button @click="demoLogin('ADMIN')" class="border border-gray-200 rounded-lg py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">Login as Admin</button>
-          <button @click="demoLogin('USER')" class="border border-gray-200 rounded-lg py-2 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors">Login as User</button>
-        </div>
-      </div>
+      <!-- UI demo access dihapus atas instruksi user -->
     </div>
   </div>
 </template>
@@ -89,19 +79,9 @@ async function handleSubmit() {
     auth.loginUser(res.data)
     router.push('/')
   } catch (err) {
-    if (!err.response) {
-      auth.loginUser({ token: 'demo-token', id: 1, name: 'Demo Admin', email: form.email || 'admin@demo.com', role: 'ADMIN' })
-      router.push('/')
-      return
-    }
     error.value = err.response?.data?.message || 'Login failed. Please check your credentials.'
   } finally {
     loading.value = false
   }
-}
-
-function demoLogin(role) {
-  auth.loginUser({ token: 'demo-token', id: role === 'ADMIN' ? 1 : 2, name: `Demo ${role === 'ADMIN' ? 'Admin' : 'User'}`, email: `${role.toLowerCase()}@demo.com`, role })
-  router.push('/')
 }
 </script>

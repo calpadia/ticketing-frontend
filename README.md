@@ -214,3 +214,4 @@ Frontend terhubung ke backend Spring Boot. Endpoint yang digunakan:
 ## Changelog
 
 - **[25 Juni 2026] Fix Bug 500 pada Read Receipt Tiket**: Menghapus pemanggilan ganda API `/read` di `Tickets.vue` saat melakukan navigasi ke `TicketDetail.vue`, yang sebelumnya memicu konflik *Duplicate Key* pada backend dan mengganggu penghapusan notifikasi badge chat/tiket baru.
+- **[25 Juni 2026] Pembersihan Dead Code**: Menghapus sisa kode usang pasca-migrasi ke sistem notifikasi backend. Pembersihan mencakup penghapusan `require()` usang di `axios.js`, penghapusan stub kosongan di `notifications.js`, dan lencana hitungan statis per tiket di halaman daftar tiket dan *chat*.

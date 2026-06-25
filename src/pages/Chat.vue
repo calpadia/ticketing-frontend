@@ -29,9 +29,7 @@
           <div class="flex items-center justify-between">
             <span class="font-mono text-xs text-blue-600">{{ t.ticketNumber }}</span>
             <div class="flex items-center gap-2">
-              <span v-if="notifications.getUnread(t.id) > 0" class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-                {{ notifications.getUnread(t.id) }}
-              </span>
+
               <StatusBadge :status="t.status" />
             </div>
           </div>
@@ -260,7 +258,7 @@ function subscribeToAllTickets() {
 async function selectTicket(ticket) {
   activeTicket.value = ticket
   messages.value = []
-  notifications.clearUnread(ticket.id)
+
 
   // Load chat history
   try {

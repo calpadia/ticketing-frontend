@@ -4,6 +4,7 @@ import SockJS from 'sockjs-client/dist/sockjs'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notifications'
 import { getTickets } from '../api/tickets'
+import { triggerNotification } from '../utils/notify'
 
 let stompClient = null
 let subscriptions = []
@@ -17,10 +18,8 @@ export function useGlobalChat() {
   function connect() {
     if (stompClient || !auth.token || auth.token === 'demo-token') return
 
-    // Initialize baseline immediately without waiting for WebSocket
-    getTickets().then(res => {
-      notifications.initializeFromTickets(res.data, auth.user)
-    }).catch(() => {})
+    // Fetch baseline unread count from API
+    notifications.fetchUnreadCount()
 
     const wsUrl = `${window.location.protocol === 'https:' ? 'https' : 'http'}://${window.location.host}/ws`
 
@@ -31,6 +30,8 @@ export function useGlobalChat() {
       },
       onConnect: async () => {
         connected.value = true
+        // Poin 3: Reconnection Gap - Selalu tarik count terbaru dari DB saat koneksi pulih
+        notifications.fetchUnreadCount()
         await subscribeAll()
       },
       onDisconnect: () => {
@@ -56,7 +57,7 @@ export function useGlobalChat() {
       const tickets = res.data
 
       // Initialize ticket count and badge for fresh sessions
-      notifications.initializeFromTickets(tickets, auth.user)
+      notifications.fetchUnreadCount()
 
       tickets.forEach(t => {
         if (stompClient && connected.value) {
@@ -67,6 +68,8 @@ export function useGlobalChat() {
               const currentPath = window.location.hash || window.location.pathname
               if (!currentPath.includes(`/tickets/${t.id}`)) {
                 notifications.addUnread(t.id)
+                // Poin 4: Suara / Push Notif
+                triggerNotification(`Pesan baru di Tiket #${t.ticketNumber}`, msg.content || 'Lampiran dikirim')
               }
             }
           })
@@ -92,6 +95,11 @@ export function useGlobalChat() {
           const ticket = JSON.parse(message.body)
           if (ticket.requesterId !== auth.user?.id) {
             notifications.addNewTicket(ticket.id, ticket)
+            // Poin 4: Suara / Push Notif
+            triggerNotification(
+              `Tiket Baru: #${ticket.ticketNumber}`, 
+              ticket.priority === 'L1' ? 'URGENT: ' + ticket.title : ticket.title
+            )
           }
         })
         subscriptions.push(newTicketSub)

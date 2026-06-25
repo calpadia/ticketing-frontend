@@ -11,15 +11,6 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Lazy import to avoid circular dependency
-let toastStore = null
-function getToast() {
-  if (!toastStore) {
-    const { useToastStore } = require('../stores/toast')
-    toastStore = useToastStore()
-  }
-  return toastStore
-}
 
 api.interceptors.response.use(
   (response) => response,
@@ -52,7 +43,8 @@ api.interceptors.response.use(
           toast.warning('Terlalu banyak permintaan. Silakan tunggu beberapa saat dan coba lagi.')
           break
         case 500:
-          toast.error('Terjadi kesalahan pada server. Silakan coba lagi nanti.')
+          const failUrl = error.config?.url || 'Unknown URL'
+          toast.error(`Terjadi kesalahan pada server (500) saat mengakses: ${failUrl}`)
           break
       }
     }).catch(() => {})

@@ -11,6 +11,19 @@
         </button>
       </div>
 
+      <!-- User Quota Warnings -->
+      <div v-if="userQuotaWarnings.length > 0" class="mb-6 space-y-3">
+        <div v-for="(warn, i) in userQuotaWarnings" :key="i"
+          :class="['flex items-start gap-3 p-4 rounded-xl border', warn.level === 'danger' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-yellow-50 border-yellow-200 text-yellow-800']">
+          <AlertCircle v-if="warn.level === 'danger'" class="w-5 h-5 shrink-0 mt-0.5" />
+          <AlertTriangle v-else class="w-5 h-5 shrink-0 mt-0.5" />
+          <div class="flex-1">
+            <h4 class="text-sm font-bold">{{ warn.level === 'danger' ? 'Kuota Habis' : 'Kuota Menipis' }}</h4>
+            <p class="text-sm mt-1">{{ warn.msg }} Harap hubungi tim Support/Admin.</p>
+          </div>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <!-- PM Quota Card -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 relative overflow-hidden flex flex-col justify-between h-36">
@@ -90,11 +103,12 @@
         <p class="text-gray-500 text-sm mt-1">Overview sistem ticketing</p>
       </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
       <StatCard title="Total Tickets" :value="tickets.length" color="blue" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets')" />
       <StatCard title="Open" :value="openCount" color="yellow" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets?status=OPEN')" />
       <StatCard title="In Progress" :value="inProgressCount" color="indigo" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets?status=IN_PROGRESS')" />
       <StatCard title="Resolved" :value="resolvedCount" color="green" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets?status=RESOLVED')" />
+      <StatCard title="Critical Quotas" :value="criticalClientQuotas.count" color="red" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/service-catalog')" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -121,6 +135,14 @@
           <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors" @click="router.push('/tickets')">
             <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center"><Ticket class="w-5 h-5 text-gray-600" /></div>
             <div><p class="text-sm text-gray-500">PM / CM</p><p class="font-semibold">{{ tickets.filter(t => t.maintenanceType === 'PM').length }} / {{ tickets.filter(t => t.maintenanceType === 'CM').length }}</p></div>
+          </div>
+          
+          <div v-if="criticalClientQuotas.count > 0" class="flex items-start gap-3 cursor-pointer hover:bg-red-50 p-3 -mx-2 mt-2 rounded-lg transition-colors bg-red-50/50 border border-red-100" @click="router.push('/service-catalog')">
+            <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0"><AlertTriangle class="w-5 h-5 text-red-600" /></div>
+            <div>
+              <p class="text-sm font-bold text-red-800">Klien Kritis (≥80%)</p>
+              <p class="text-xs text-red-600 mt-1">{{ criticalClientQuotas.count }} klien butuh perhatian.<br/>(Cth: {{ criticalClientQuotas.clients.map(c => c.name).join(', ') }})</p>
+            </div>
           </div>
         </div>
       </div>
@@ -164,9 +186,9 @@ import { useRouter } from 'vue-router'
 import { getTickets } from '../api/tickets'
 import { getClients } from '../api/clients'
 import { getUsers } from '../api/users'
-import { getMyQuotas } from '../api/quotas'
+import { getMyQuotas, getClientQuotas } from '../api/quotas'
 import { useAuthStore } from '../stores/auth'
-import { Building2, Users as UsersIcon, Ticket } from 'lucide-vue-next'
+import { Building2, Users as UsersIcon, Ticket, AlertTriangle, AlertCircle } from 'lucide-vue-next'
 import StatCard from '../components/StatCard.vue'
 import BarItem from '../components/BarItem.vue'
 import StatusBadge from '../components/StatusBadge.vue'
@@ -178,6 +200,7 @@ const tickets = ref([])
 const clients = ref([])
 const users = ref([])
 const quotas = ref([])
+const allQuotas = ref([])
 
 const currentQuota = computed(() => {
   const currentYear = new Date().getFullYear()
@@ -206,11 +229,57 @@ const resolvedCount = computed(() => tickets.value.filter(t => t.status === 'RES
 const closedCount = computed(() => tickets.value.filter(t => t.status === 'CLOSED').length)
 const recentTickets = computed(() => [...tickets.value].reverse().slice(0, 5))
 
+// USER Role warnings
+const userQuotaWarnings = computed(() => {
+  const warnings = []
+  const q = currentQuota.value
+  
+  if (q.pmQuota > 0) {
+    const pmPct = q.pmUsed / q.pmQuota
+    if (pmPct >= 1) warnings.push({ type: 'PM', level: 'danger', msg: `Kuota Preventive Maintenance (PM) Anda telah habis (0 tersisa).` })
+    else if (pmPct >= 0.8) warnings.push({ type: 'PM', level: 'warning', msg: `Kuota PM Anda tersisa ${q.pmQuota - q.pmUsed} tiket.` })
+  }
+  if (q.cmQuota > 0) {
+    const cmPct = q.cmUsed / q.cmQuota
+    if (cmPct >= 1) warnings.push({ type: 'CM', level: 'danger', msg: `Kuota Corrective Maintenance (CM) Anda telah habis (0 tersisa).` })
+    else if (cmPct >= 0.8) warnings.push({ type: 'CM', level: 'warning', msg: `Kuota CM Anda tersisa ${q.cmQuota - q.cmUsed} tiket.` })
+  }
+  return warnings
+})
+
+// ADMIN/SUPPORT Role warnings
+const criticalClientQuotas = computed(() => {
+  const currentYear = new Date().getFullYear()
+  const currentYearQuotas = allQuotas.value.filter(q => q.year === currentYear)
+  
+  let count = 0
+  const criticalClients = []
+  
+  currentYearQuotas.forEach(q => {
+    let isCritical = false
+    const pmPct = q.pmQuota > 0 ? q.pmUsed / q.pmQuota : 0
+    const cmPct = q.cmQuota > 0 ? q.cmUsed / q.cmQuota : 0
+    
+    if (pmPct >= 0.8 || cmPct >= 0.8) isCritical = true
+    
+    if (isCritical) {
+      count++
+      const client = clients.value.find(c => c.id === q.clientId)
+      if (client && !criticalClients.find(c => c.name === client.companyName)) {
+        criticalClients.push({ name: client.companyName, pmPct, cmPct })
+      }
+    }
+  })
+  
+  return { count, clients: criticalClients.slice(0, 3) } // Top 3
+})
+
 onMounted(async () => {
   try { const res = await getTickets(); tickets.value = res.data } catch { tickets.value = [] }
-  if (auth.isAdmin) {
+  if (auth.isAdmin || auth.user?.role === 'SUPPORT') {
     try { const res = await getClients(); clients.value = res.data } catch { clients.value = [] }
     try { const res = await getUsers(); users.value = res.data } catch { users.value = [] }
+    try { const res = await getClientQuotas(); allQuotas.value = res.data } catch { allQuotas.value = [] }
   } else if (auth.user?.role === 'USER') {
     try { const res = await getMyQuotas(); quotas.value = res.data } catch { quotas.value = [] }
   }
