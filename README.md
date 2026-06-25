@@ -210,3 +210,7 @@ Frontend terhubung ke backend Spring Boot. Endpoint yang digunakan:
 - Route `/quotas` di-redirect otomatis ke `/service-catalog` (sudah digabung)
 - Knowledge Base menampilkan ticket berstatus `RESOLVED` atau `CLOSED`
 - WebSocket untuk chat terkoneksi otomatis saat user login dan terputus saat logout
+
+## Changelog
+
+- **[25 Juni 2026] Fix Bug 500 pada Read Receipt Tiket**: Menghapus pemanggilan ganda API `/read` di `Tickets.vue` saat melakukan navigasi ke `TicketDetail.vue`, yang sebelumnya memicu konflik *Duplicate Key* pada backend dan mengganggu penghapusan notifikasi badge chat/tiket baru.

@@ -73,7 +73,7 @@
                     <span v-if="notifications.getUnread(t.id) > 0" class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-green-500 text-white text-[10px] font-bold shadow-sm">
                       {{ notifications.getUnread(t.id) }}
                     </span>
-                    <span v-if="notifications.isNewTicket(t.id)" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse">NEW</span>
+                    <span v-if="t.isRead === false" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse">NEW</span>
                   </div>
                 </td>
                 <td class="px-6 py-3"><StatusBadge :status="t.status" /></td>
@@ -111,7 +111,7 @@
             <h4 class="font-medium text-gray-900 mb-1 flex items-center gap-2">
               {{ t.title }}
               <span v-if="notifications.getUnread(t.id) > 0" class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-green-500 text-white text-[10px] font-bold shadow-sm">{{ notifications.getUnread(t.id) }}</span>
-              <span v-if="notifications.isNewTicket(t.id)" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse shrink-0">NEW</span>
+              <span v-if="t.isRead === false" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse shrink-0">NEW</span>
             </h4>
             <p class="text-sm text-gray-500 mb-3">{{ t.clientCompanyName }}</p>
             <div class="flex items-center justify-between">
@@ -361,8 +361,8 @@ const filtered = computed(() => {
   
   // Sort: Unread (NEW) tickets first
   return result.sort((a, b) => {
-    const aIsNew = notifications.isNewTicket(a.id) ? 1 : 0
-    const bIsNew = notifications.isNewTicket(b.id) ? 1 : 0
+    const aIsNew = a.isRead === false ? 1 : 0
+    const bIsNew = b.isRead === false ? 1 : 0
     return bIsNew - aIsNew
   })
 })
@@ -382,7 +382,7 @@ watch(() => notifications.incomingTicket, (ticket) => {
 
 onMounted(async () => {
   loading.value = true
-  try { const res = await getTickets(); tickets.value = res.data; notifications.clearNewTickets(res.data.length) } catch { tickets.value = [] }
+  try { const res = await getTickets(); tickets.value = res.data; } catch { tickets.value = [] }
   if (auth.isAdmin) {
     try { clients.value = (await getClients()).data } catch { clients.value = [] }
     try { users.value = (await getUsers()).data } catch { users.value = [] }
@@ -407,7 +407,6 @@ function handleGlobalKeydown(e) {
 }
 
 function openTicketDetail(ticket) {
-  notifications.markTicketSeen(ticket.id)
   router.push(`/tickets/${ticket.id}`)
 }
 
