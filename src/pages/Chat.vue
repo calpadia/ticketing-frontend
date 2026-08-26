@@ -10,7 +10,7 @@
         <h3 class="font-semibold text-gray-900 mb-3">Tickets</h3>
         <div class="relative">
           <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input v-model="searchTicket" type="text" placeholder="Cari ticket..." class="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input v-model="searchTicket" type="text" placeholder="Cari ticket..." class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl pl-9 pr-3 py-2 text-sm transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
         </div>
       </div>
       <div class="flex-1 overflow-y-auto">
@@ -29,7 +29,9 @@
           <div class="flex items-center justify-between">
             <span class="font-mono text-xs text-blue-600">{{ t.ticketNumber }}</span>
             <div class="flex items-center gap-2">
-
+              <span v-if="t.unreadMessageCount > 0" class="bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                {{ t.unreadMessageCount }}
+              </span>
               <StatusBadge :status="t.status" />
             </div>
           </div>
@@ -47,7 +49,7 @@
       <!-- Chat header -->
       <div v-if="activeTicket" class="px-4 py-3 border-b border-gray-200 flex items-center gap-3">
         <!-- Back button on mobile -->
-        <button @click="activeTicket = null" class="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 shrink-0">
+        <button @click="activeTicket = null" class="lg:hidden p-1.5 rounded-xl hover:bg-gray-100 text-gray-500 shrink-0">
           <ChevronLeft class="w-5 h-5" />
         </button>
         <div class="flex-1 min-w-0">
@@ -107,7 +109,7 @@
       <!-- Input area -->
       <div v-if="activeTicket" class="px-4 py-3 border-t border-gray-200">
         <div v-if="pendingFiles.length > 0" class="flex flex-wrap gap-2 mb-3">
-          <div v-for="(file, i) in pendingFiles" :key="i" class="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-lg px-2 py-1 text-xs">
+          <div v-for="(file, i) in pendingFiles" :key="i" class="flex items-center gap-1 bg-blue-50 border border-blue-200 rounded-xl px-2 py-1 text-xs">
             <Paperclip class="w-3 h-3 text-blue-500" />
             <span class="text-blue-700 truncate max-w-[120px]">{{ file.name }}</span>
             <button @click="pendingFiles.splice(i, 1)" class="text-red-400 hover:text-red-600 ml-1"><X class="w-3 h-3" /></button>
@@ -115,20 +117,20 @@
         </div>
         <form @submit.prevent="sendMessage" class="flex gap-2">
           <input ref="chatFileInput" type="file" class="hidden" multiple @change="handleFileAdd" />
-          <button type="button" @click="$refs.chatFileInput.click()" :disabled="!connected" class="border border-gray-300 rounded-lg px-3 py-2.5 hover:bg-gray-50 disabled:opacity-50 transition-colors shrink-0">
+          <button type="button" @click="$refs.chatFileInput.click()" :disabled="!connected" class="bg-white border border-gray-200 rounded-xl px-3 py-2.5 hover:bg-gray-50 disabled:opacity-50 transition-colors focus:ring-2 focus:ring-blue-500/20 shrink-0">
             <Paperclip class="w-4 h-4 text-gray-500" />
           </button>
           <input
             v-model="newMessage"
             type="text"
             placeholder="Ketik pesan..."
-            class="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
+            class="flex-1 bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-2.5 text-sm transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 min-w-0"
             :disabled="!connected"
           />
           <button
             type="submit"
             :disabled="(!newMessage.trim() && pendingFiles.length === 0) || !connected || uploading"
-            class="bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors shrink-0"
+            class="bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors hover:shadow-md hover:shadow-blue-600/20 shrink-0"
           >
             <Send v-if="!uploading" class="w-4 h-4" />
             <span v-else class="text-xs">...</span>
@@ -247,7 +249,7 @@ function subscribeToAllTickets() {
           }
         } else if (msg.senderId !== currentUserId.value) {
           // Not active ticket and not from self - mark as unread
-          notifications.addUnread(t.id)
+          t.unreadMessageCount = (t.unreadMessageCount || 0) + 1
         }
       })
       allSubscriptions.push(sub)
@@ -258,8 +260,7 @@ function subscribeToAllTickets() {
 async function selectTicket(ticket) {
   activeTicket.value = ticket
   messages.value = []
-
-
+  ticket.unreadMessageCount = 0
   // Load chat history
   try {
     const res = await getChatHistory(ticket.id)

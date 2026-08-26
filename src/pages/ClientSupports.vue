@@ -1,5 +1,6 @@
 <template>
   <div>
+    <ConfirmDialog ref="confirmDialog" />
     <div class="mb-6">
       <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
         <router-link to="/client-management" class="hover:text-blue-600 transition-colors">Client Management</router-link>
@@ -11,40 +12,45 @@
     </div>
 
     <!-- Client selector -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
       <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Client</label>
-      <select v-model="selectedClientId" @change="loadSupports" class="w-full max-w-md border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-        <option value="">-- Pilih Client --</option>
-        <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
-      </select>
+      <div class="relative w-full max-w-md">
+        <select v-model="selectedClientId" @change="loadSupports" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 rounded-xl pl-4 pr-10 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+          <option value="">-- Pilih Client --</option>
+          <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+        </select>
+        <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+      </div>
     </div>
 
     <!-- Content when client selected -->
     <div v-if="selectedClientId">
       <!-- Current supports -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-        <div class="flex items-center justify-between mb-4">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div class="flex items-center justify-between mb-6">
           <h3 class="text-lg font-semibold text-gray-900">Support Engineer Aktif</h3>
-          <button @click="showAddForm = !showAddForm" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium">
-            <Plus class="w-4 h-4" /> Tambah Support
+          <button @click="showAddForm = !showAddForm" class="flex items-center gap-2 bg-blue-600 text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 text-sm font-medium transition-all">
+            <component :is="showAddForm ? X : Plus" class="w-4 h-4" /> 
+            <span class="hidden sm:inline">{{ showAddForm ? 'Batal' : 'Tambah Support' }}</span>
           </button>
         </div>
 
-        <div v-if="supports.length === 0" class="text-center py-8 text-gray-500 text-sm">
-          Belum ada support engineer yang ditugaskan untuk client ini.
+        <div v-if="supports.length === 0" class="flex flex-col items-center justify-center py-10 text-gray-500">
+          <Users class="w-10 h-10 mb-3 text-gray-300" />
+          <p class="text-sm">Belum ada support engineer yang ditugaskan untuk client ini.</p>
         </div>
 
-        <div v-else class="space-y-2">
-          <div v-for="s in supports" :key="s.id" class="flex items-center gap-3 bg-gray-50 rounded-lg px-4 py-3">
-            <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-medium text-sm">
+        <div v-else class="space-y-3">
+          <div v-for="s in supports" :key="s.id" class="flex items-center gap-4 bg-gray-50/80 border border-gray-100 rounded-xl px-5 py-4 transition-colors hover:bg-gray-50">
+            <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-sm shadow-sm">
               {{ s.supportUserName?.charAt(0)?.toUpperCase() }}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-900">{{ s.supportUserName }}</p>
+              <p class="text-sm font-semibold text-gray-900">{{ s.supportUserName }}</p>
               <p class="text-xs text-gray-500">{{ s.supportUserEmail }}</p>
             </div>
-            <p class="text-xs text-gray-400">{{ formatDate(s.assignedAt) }}</p>
-            <button @click="handleRemove(s.supportUserId)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700" v-tooltip="'Hapus Support'">
+            <p class="text-xs font-medium text-gray-400 hidden sm:block bg-white px-2 py-1 rounded-md border border-gray-100">{{ formatDate(s.assignedAt) }}</p>
+            <button @click="handleRemove(s.supportUserId)" class="p-2 rounded-xl bg-white border border-gray-200 hover:bg-red-50 hover:border-red-200 text-gray-400 hover:text-red-600 transition-all ml-2 shadow-sm" v-tooltip="'Hapus Support'">
               <Trash2 class="w-4 h-4" />
             </button>
           </div>
@@ -52,25 +58,33 @@
       </div>
 
       <!-- Add support form -->
-      <div v-if="showAddForm" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Tambah Support Engineer</h3>
-        <div class="border border-gray-200 rounded-lg max-h-60 overflow-y-auto mb-4">
-          <label v-for="u in availableSupports" :key="u.id"
-            class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
-            <input type="checkbox" :value="u.id" v-model="selectedSupportIds" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-            <div class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-medium">{{ u.name.charAt(0) }}</div>
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-900">{{ u.name }}</p>
-              <p class="text-xs text-gray-500">{{ u.email }}</p>
+      <transition name="fade">
+        <div v-if="showAddForm" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">Tambah Support Engineer</h3>
+          <div class="border border-gray-200 rounded-xl max-h-64 overflow-y-auto mb-6 bg-gray-50/30">
+            <label v-for="u in availableSupports" :key="u.id"
+              class="flex items-center gap-4 px-5 py-4 hover:bg-blue-50/50 cursor-pointer border-b border-gray-100 last:border-0 transition-colors">
+              <input type="checkbox" :value="u.id" v-model="selectedSupportIds" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20" />
+              <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-sm font-bold shadow-sm">{{ u.name.charAt(0) }}</div>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-gray-900">{{ u.name }}</p>
+                <p class="text-xs text-gray-500">{{ u.email }}</p>
+              </div>
+              <span class="text-xs font-medium px-2.5 py-1 rounded-md bg-indigo-50 border border-indigo-100 text-indigo-700">{{ u.role }}</span>
+            </label>
+            <div v-if="availableSupports.length === 0" class="flex flex-col items-center justify-center py-8 text-gray-500">
+              <CheckCircle class="w-8 h-8 mb-2 text-gray-300" />
+              <p class="text-sm">Semua support sudah ditugaskan ke client ini.</p>
             </div>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">{{ u.role }}</span>
-          </label>
-          <p v-if="availableSupports.length === 0" class="text-center py-4 text-sm text-gray-500">Semua support sudah ditugaskan ke client ini.</p>
+          </div>
+          <div class="flex justify-end">
+            <button @click="handleAdd" :disabled="selectedSupportIds.length === 0" class="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium disabled:opacity-50 transition-all text-sm">
+              <UserPlus class="w-4 h-4" />
+              <span>Tambah {{ selectedSupportIds.length > 0 ? selectedSupportIds.length : '' }} Support</span>
+            </button>
+          </div>
         </div>
-        <button @click="handleAdd" :disabled="selectedSupportIds.length === 0" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50">
-          Tambah {{ selectedSupportIds.length }} Support
-        </button>
-      </div>
+      </transition>
     </div>
   </div>
 </template>
@@ -81,7 +95,8 @@ import { useRoute } from 'vue-router'
 import { getClients } from '../api/clients'
 import { getUsers } from '../api/users'
 import { getClientSupports, addClientSupports, removeClientSupports } from '../api/clientSupports'
-import { Plus, Trash2 } from 'lucide-vue-next'
+import { Plus, X, Trash2, ChevronDown, Users, CheckCircle, UserPlus } from 'lucide-vue-next'
+import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const route = useRoute()
 const clients = ref([])
@@ -90,6 +105,7 @@ const supports = ref([])
 const selectedClientId = ref('')
 const showAddForm = ref(false)
 const selectedSupportIds = ref([])
+const confirmDialog = ref(null)
 
 const availableSupports = computed(() => {
   const assignedIds = supports.value.map(s => s.supportUserId)
@@ -127,7 +143,13 @@ async function handleAdd() {
 }
 
 async function handleRemove(supportUserId) {
-  if (!confirm('Hapus support ini dari client?')) return
+  const confirmed = await confirmDialog.value.open({
+    title: 'Hapus Support Engineer',
+    message: 'Apakah kamu yakin ingin menghapus support ini dari client?',
+    confirmLabel: 'Ya, Hapus',
+    confirmColor: 'red'
+  })
+  if (!confirmed) return
   try {
     await removeClientSupports(Number(selectedClientId.value), [supportUserId])
     supports.value = (await getClientSupports(selectedClientId.value)).data
@@ -138,3 +160,15 @@ function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
 }
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

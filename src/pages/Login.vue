@@ -11,7 +11,7 @@
       </div>
 
       <!-- Error -->
-      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm">
+      <div v-if="error" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm">
         {{ error }}
       </div>
 
@@ -22,7 +22,7 @@
           <input
             v-model="form.email"
             type="email"
-            class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            class="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
             placeholder="you@company.com"
             required
           />
@@ -33,7 +33,7 @@
             <input
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
-              class="w-full border border-gray-200 rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              class="w-full bg-gray-50/50 border border-gray-200 rounded-xl px-4 py-3 pr-10 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm"
               placeholder="••••••••"
               required
             />
@@ -46,7 +46,7 @@
         <button
           type="submit"
           :disabled="loading"
-          class="w-full bg-slate-700 text-white py-3 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50 font-medium text-sm"
+          class="w-full bg-slate-700 text-white py-3 rounded-xl hover:bg-slate-800 transition-all hover:shadow-md hover:shadow-slate-700/20 disabled:opacity-50 font-medium text-sm"
         >
           {{ loading ? 'Signing in...' : 'Login to Portal' }}
         </button>

@@ -3,23 +3,44 @@
     <ConfirmDialog ref="confirmDialog" />
     <div class="flex items-center justify-between mb-6">
       <div><h2 class="text-2xl font-bold text-gray-900">Client Quotas</h2><p class="text-gray-500 text-sm mt-1">Manage PM & CM quota allocations</p></div>
-      <button @click="toggleForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
+      <button @click="toggleForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 font-medium">
         <component :is="showForm ? X : Plus" class="w-4 h-4" /> {{ showForm ? 'Cancel' : 'New Quota' }}
       </button>
     </div>
 
-    <form v-if="showForm" @submit.prevent="handleSubmit" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">{{ editingId ? 'Edit Quota' : 'Create New Quota' }}</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">Client *</label><select v-model="form.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required><option value="">Select client</option><option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option></select></div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">Year *</label><input v-model.number="form.year" type="number" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required /></div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">PM Quota *</label><input v-model.number="form.pmQuota" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required /></div>
-        <div><label class="block text-sm font-medium text-gray-700 mb-1">CM Quota *</label><input v-model.number="form.cmQuota" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required /></div>
-      </div>
-      <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">{{ editingId ? 'Update' : 'Create' }}</button>
-    </form>
+    <transition name="fade">
+      <form v-if="showForm" @submit.prevent="handleSubmit" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-gray-900">{{ editingId ? 'Edit Quota' : 'Create New Quota' }}</h3>
+          <p class="text-sm text-gray-500 mt-1">Isi alokasi kuota PM dan CM untuk tahun terpilih</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Client *</label>
+            <div class="relative">
+              <select v-model="form.clientId" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer" required>
+                <option value="">Select client</option>
+                <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+              </select>
+              <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">Year *</label><input v-model.number="form.year" type="number" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" required /></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">PM Quota *</label><input v-model.number="form.pmQuota" type="number" min="0" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" required /></div>
+          <div><label class="block text-sm font-medium text-gray-700 mb-2">CM Quota *</label><input v-model.number="form.cmQuota" type="number" min="0" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" required /></div>
+        </div>
+        <div class="mt-8 flex justify-end">
+          <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium transition-all">{{ editingId ? 'Simpan Perubahan' : 'Buat Quota' }}</button>
+        </div>
+      </form>
+    </transition>
 
-    <div class="relative mb-4"><Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" /><input v-model="search" type="text" placeholder="Search by client..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" /></div>
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 mb-6 w-full">
+      <div class="relative w-full">
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input v-model="search" type="text" placeholder="Search by client..." class="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-2 text-sm transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
+      </div>
+    </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-auto max-h-[70vh]">
       <table class="w-full text-sm relative">
@@ -55,8 +76,8 @@
             </td>
             <td class="px-6 py-3">
               <div class="flex gap-2">
-                <button @click="startEdit(q)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Quota'"><Pencil class="w-4 h-4" /></button>
-                <button @click="handleDelete(q.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus Quota'"><Trash2 class="w-4 h-4" /></button>
+                <button @click="startEdit(q)" class="p-1.5 rounded-xl hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Quota'"><Pencil class="w-4 h-4" /></button>
+                <button @click="handleDelete(q.id)" class="p-1.5 rounded-xl hover:bg-red-50 text-red-600" v-tooltip="'Hapus Quota'"><Trash2 class="w-4 h-4" /></button>
               </div>
             </td>
           </tr>
@@ -71,7 +92,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { getClientQuotas, createClientQuota, updateClientQuota, deleteClientQuota } from '../api/quotas'
 import { getClients } from '../api/clients'
-import { Search, Plus, X, Pencil, Trash2 } from 'lucide-vue-next'
+import { Search, Plus, X, Pencil, Trash2, ChevronDown } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 
 const confirmDialog = ref(null)
@@ -130,3 +151,4 @@ async function handleDelete(id) {
   try { await deleteClientQuota(id); quotas.value = (await getClientQuotas()).data } catch { /* API unavailable */ }
 }
 </script>
+

@@ -11,7 +11,7 @@
       <div class="flex items-center justify-between">
         <h2 class="text-2xl font-bold text-gray-900">{{ client?.companyName || 'Client Detail' }}</h2>
         <div class="flex items-center gap-3" v-if="client">
-          <router-link :to="'/quotas?clientId=' + client.id" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors text-sm">
+          <router-link :to="'/quotas?clientId=' + client.id" class="px-4 py-2 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors text-sm">
             Top Up Kuota
           </router-link>
         </div>
@@ -39,8 +39,9 @@
           <p class="text-2xl font-bold text-green-600">{{ resolvedTicketsCount }}</p>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col justify-center">
-          <p class="text-sm text-gray-500 font-medium mb-1">SLA Terpenuhi</p>
-          <p class="text-2xl font-bold text-indigo-600">~98%</p>
+          <p class="text-sm text-gray-500 font-medium mb-1">SLA Resolusi Terpenuhi</p>
+          <p v-if="slaLoading" class="text-2xl font-bold text-gray-300">...</p>
+          <p v-else :class="['text-2xl font-bold', slaColorClass]">{{ slaTerpenuhi }}</p>
         </div>
       </div>
 
@@ -48,7 +49,7 @@
         <!-- Info Perusahaan -->
         <div>
           <h4 class="text-sm font-semibold text-gray-700 mb-2">Informasi Perusahaan</h4>
-          <div class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 rounded-lg p-4 border border-gray-100">
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
           <div>
             <p class="text-xs text-gray-500 uppercase tracking-wide">Nama Kontak</p>
             <p class="text-sm font-medium mt-1">{{ client.contactPersonName || '-' }}</p>
@@ -78,11 +79,11 @@
           <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center justify-between">
             <span>Users ({{ clientUsers.length }})</span>
           </h4>
-          <div v-if="clientUsers.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+          <div v-if="clientUsers.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
             Belum ada user untuk client ini.
           </div>
           <div v-else class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-            <div v-for="u in clientUsers" :key="u.id" class="flex items-center gap-3 bg-blue-50/50 rounded-lg px-3 py-2.5 border border-blue-100/50">
+            <div v-for="u in clientUsers" :key="u.id" class="flex items-center gap-3 bg-blue-50/50 rounded-xl px-3 py-2.5 border border-blue-100/50">
               <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">{{ u.name.charAt(0) }}</div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 truncate">{{ u.name }}</p>
@@ -98,11 +99,11 @@
             <h4 class="text-sm font-semibold text-gray-700">Support Engineers ({{ clientSupports.length }})</h4>
             <router-link :to="'/client-supports?clientId=' + client.id" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Kelola</router-link>
           </div>
-          <div v-if="clientSupports.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+          <div v-if="clientSupports.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
             Belum ada support engineer untuk client ini.
           </div>
           <div v-else class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-            <div v-for="s in clientSupports" :key="s.id" class="flex items-center gap-3 bg-green-50/50 rounded-lg px-3 py-2.5 border border-green-100/50">
+            <div v-for="s in clientSupports" :key="s.id" class="flex items-center gap-3 bg-green-50/50 rounded-xl px-3 py-2.5 border border-green-100/50">
               <div class="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-medium">{{ s.supportUserName?.charAt(0) }}</div>
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-900 truncate">{{ s.supportUserName }}</p>
@@ -118,11 +119,11 @@
             <h4 class="text-sm font-semibold text-gray-700">Projects ({{ clientProjects.length }})</h4>
             <router-link :to="'/projects?clientId=' + client.id" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Kelola</router-link>
           </div>
-          <div v-if="clientProjects.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+          <div v-if="clientProjects.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
             Belum ada project untuk client ini.
           </div>
           <div v-else class="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-            <div v-for="p in clientProjects" :key="p.id" class="flex flex-col justify-center bg-indigo-50/50 rounded-lg px-3 py-2.5 border border-indigo-100/50">
+            <div v-for="p in clientProjects" :key="p.id" class="flex flex-col justify-center bg-indigo-50/50 rounded-xl px-3 py-2.5 border border-indigo-100/50">
               <span class="text-sm font-medium text-gray-900">{{ p.projectName }}</span>
               <span class="text-xs text-gray-500 mt-0.5">{{ p.description || 'Tidak ada deskripsi' }}</span>
             </div>
@@ -135,11 +136,11 @@
             <h4 class="text-sm font-semibold text-gray-700">Kuota</h4>
             <router-link :to="'/quotas?clientId=' + client.id" class="text-xs text-blue-600 hover:text-blue-800 font-medium">Kelola</router-link>
           </div>
-          <div v-if="clientQuotas.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+          <div v-if="clientQuotas.length === 0" class="text-sm text-gray-400 py-2 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
             Belum ada kuota untuk client ini.
           </div>
           <div v-else class="space-y-3 max-h-[300px] overflow-y-auto pr-2">
-            <div v-for="q in clientQuotas" :key="q.id" class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+            <div v-for="q in clientQuotas" :key="q.id" class="bg-gray-50 rounded-xl p-3 border border-gray-100">
               <p class="text-xs text-gray-500 mb-2 font-medium">Tahun {{ q.year }}</p>
               <div class="grid grid-cols-2 gap-3">
                 <div class="bg-white p-2 rounded border border-gray-100">
@@ -205,6 +206,7 @@ import { getProjectsByClientId } from '../api/projects'
 import { getClientQuotas } from '../api/quotas'
 import { getClientSupports } from '../api/clientSupports'
 import { getTickets } from '../api/tickets'
+import { getSlaReport } from '../api/slaReport'
 import StatusBadge from '../components/StatusBadge.vue'
 
 const route = useRoute()
@@ -218,6 +220,8 @@ const clientProjects = ref([])
 const clientQuotas = ref([])
 const clientSupports = ref([])
 const clientTickets = ref([])
+const clientSla = ref(null)
+const slaLoading = ref(false)
 
 const activeTicketsCount = computed(() => clientTickets.value.filter(t => t.status === 'OPEN' || t.status === 'IN_PROGRESS').length)
 const resolvedTicketsCount = computed(() => clientTickets.value.filter(t => t.status === 'RESOLVED' || t.status === 'CLOSED').length)
@@ -225,6 +229,17 @@ const recentTickets = computed(() => {
   return [...clientTickets.value]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5)
+})
+
+const slaTerpenuhiPct = computed(() => clientSla.value?.resolution?.compliancePercent)
+const slaTerpenuhi = computed(() => {
+  if (slaTerpenuhiPct.value === undefined) return 'N/A'
+  return slaTerpenuhiPct.value.toFixed(1) + '%'
+})
+const slaColorClass = computed(() => {
+  const pct = slaTerpenuhiPct.value
+  if (pct === undefined) return 'text-gray-600'
+  return pct >= 90 ? 'text-green-600' : pct >= 75 ? 'text-yellow-600' : 'text-red-600'
 })
 
 onMounted(async () => {
@@ -240,6 +255,12 @@ onMounted(async () => {
     try { const resQuotas = await getClientQuotas(); clientQuotas.value = resQuotas.data.filter(q => q.clientId === Number(clientId)) } catch {}
     try { const resSupports = await getClientSupports(clientId); clientSupports.value = resSupports.data } catch {}
     try { const resTickets = await getTickets(); clientTickets.value = resTickets.data.filter(t => t.clientId === Number(clientId)) } catch {}
+    
+    try { 
+      slaLoading.value = true
+      const resSla = await getSlaReport({ clientId })
+      clientSla.value = resSla.data?.clients?.[0] || null
+    } catch {} finally { slaLoading.value = false }
   } catch (err) {
     console.error('Failed to load client details:', err)
   } finally {

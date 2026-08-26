@@ -6,7 +6,7 @@
           <h2 class="text-2xl font-bold text-gray-900">Halo, Pak {{ auth.user?.name }}</h2>
           <p class="text-gray-500 text-sm mt-1">Status Maintenance <span class="font-bold text-gray-900">{{ auth.user?.clientName }}</span></p>
         </div>
-        <button @click="router.push({ path: '/tickets', query: { create: 'true' } })" class="bg-[#e02424] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-red-700 shadow-sm transition-colors">
+        <button @click="router.push({ path: '/tickets', query: { create: 'true' } })" class="bg-[#e02424] text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 shadow-sm transition-colors">
           + Buat Tiket Baru
         </button>
       </div>
@@ -21,6 +21,21 @@
             <h4 class="text-sm font-bold">{{ warn.level === 'danger' ? 'Kuota Habis' : 'Kuota Menipis' }}</h4>
             <p class="text-sm mt-1">{{ warn.msg }} Harap hubungi tim Support/Admin.</p>
           </div>
+        </div>
+      </div>
+
+      <!-- Unresponded Tickets Warnings -->
+      <div v-if="unrespondedTicketsWarning.length > 0" class="mb-6 space-y-3">
+        <div v-for="t in unrespondedTicketsWarning" :key="t.id"
+          class="flex items-start gap-3 p-4 rounded-xl border bg-yellow-50 border-yellow-200 text-yellow-800">
+          <AlertCircle class="w-5 h-5 shrink-0 mt-0.5 text-yellow-600" />
+          <div class="flex-1">
+            <h4 class="text-sm font-bold text-yellow-900">Menunggu Respons Anda: {{ t.ticketNumber }}</h4>
+            <p class="text-sm mt-1 text-yellow-800">Tiket <b>"{{ t.title }}"</b> belum ada aktivitas selama lebih dari 3 hari. Jika tidak ada respons lanjutan, sistem akan menutupnya secara otomatis.</p>
+          </div>
+          <button @click="router.push(`/tickets/${t.id}`)" class="px-3 py-1.5 bg-yellow-100 hover:bg-yellow-200 text-yellow-900 rounded-xl text-xs font-bold transition-colors shrink-0">
+            Cek Tiket
+          </button>
         </div>
       </div>
 
@@ -103,16 +118,16 @@
         <p class="text-gray-500 text-sm mt-1">Overview sistem ticketing</p>
       </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+    <div :class="['grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8', auth.isAdmin ? 'lg:grid-cols-5' : 'lg:grid-cols-4']">
       <StatCard title="Total Tickets" :value="tickets.length" color="blue" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets')" />
       <StatCard title="Open" :value="openCount" color="yellow" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets?status=OPEN')" />
       <StatCard title="In Progress" :value="inProgressCount" color="indigo" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets?status=IN_PROGRESS')" />
       <StatCard title="Resolved" :value="resolvedCount" color="green" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/tickets?status=RESOLVED')" />
-      <StatCard title="Critical Quotas" :value="criticalClientQuotas.count" color="red" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/service-catalog')" />
+      <StatCard v-if="auth.isAdmin" title="Critical Quotas" :value="criticalClientQuotas.count" color="red" class="cursor-pointer hover:-translate-y-1 transition-transform" @click="router.push('/service-catalog')" />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-      <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div :class="['bg-white rounded-xl shadow-sm border border-gray-200 p-6', auth.isAdmin ? 'lg:col-span-2' : 'lg:col-span-3']">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Ticket Status Distribution</h3>
         <div class="flex items-end gap-4 h-48">
           <BarItem label="Open" :value="openCount" :max="tickets.length" color="bg-yellow-500" class="cursor-pointer hover:opacity-80 transition-opacity" @click="router.push('/tickets?status=OPEN')" />
@@ -121,24 +136,24 @@
           <BarItem label="Closed" :value="closedCount" :max="tickets.length" color="bg-gray-400" class="cursor-pointer hover:opacity-80 transition-opacity" @click="router.push('/tickets?status=CLOSED')" />
         </div>
       </div>
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div v-if="auth.isAdmin" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
         <div class="space-y-2">
-          <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors" @click="router.push('/clients')">
-            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center"><Building2 class="w-5 h-5 text-gray-600" /></div>
+          <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-colors" @click="router.push('/clients')">
+            <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center"><Building2 class="w-5 h-5 text-gray-600" /></div>
             <div><p class="text-sm text-gray-500">Active Clients</p><p class="font-semibold">{{ clients.filter(c => c.isActive).length }} / {{ clients.length }}</p></div>
           </div>
-          <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors" @click="router.push('/users')">
-            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center"><UsersIcon class="w-5 h-5 text-gray-600" /></div>
+          <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-colors" @click="router.push('/users')">
+            <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center"><UsersIcon class="w-5 h-5 text-gray-600" /></div>
             <div><p class="text-sm text-gray-500">Total Users</p><p class="font-semibold">{{ users.length }}</p></div>
           </div>
-          <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-lg transition-colors" @click="router.push('/tickets')">
-            <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center"><Ticket class="w-5 h-5 text-gray-600" /></div>
+          <div class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded-xl transition-colors" @click="router.push('/tickets')">
+            <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center"><Ticket class="w-5 h-5 text-gray-600" /></div>
             <div><p class="text-sm text-gray-500">PM / CM</p><p class="font-semibold">{{ tickets.filter(t => t.maintenanceType === 'PM').length }} / {{ tickets.filter(t => t.maintenanceType === 'CM').length }}</p></div>
           </div>
           
-          <div v-if="criticalClientQuotas.count > 0" class="flex items-start gap-3 cursor-pointer hover:bg-red-50 p-3 -mx-2 mt-2 rounded-lg transition-colors bg-red-50/50 border border-red-100" @click="router.push('/service-catalog')">
-            <div class="w-10 h-10 rounded-lg bg-red-100 flex items-center justify-center shrink-0"><AlertTriangle class="w-5 h-5 text-red-600" /></div>
+          <div v-if="criticalClientQuotas.count > 0" class="flex items-start gap-3 cursor-pointer hover:bg-red-50 p-3 -mx-2 mt-2 rounded-xl transition-colors bg-red-50/50 border border-red-100" @click="router.push('/service-catalog')">
+            <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center shrink-0"><AlertTriangle class="w-5 h-5 text-red-600" /></div>
             <div>
               <p class="text-sm font-bold text-red-800">Klien Kritis (≥80%)</p>
               <p class="text-xs text-red-600 mt-1">{{ criticalClientQuotas.count }} klien butuh perhatian.<br/>(Cth: {{ criticalClientQuotas.clients.map(c => c.name).join(', ') }})</p>
@@ -247,6 +262,20 @@ const userQuotaWarnings = computed(() => {
   return warnings
 })
 
+const unrespondedTicketsWarning = computed(() => {
+  if (auth.user?.role !== 'USER') return []
+  const now = Date.now()
+  const threeDaysInMs = 3 * 24 * 60 * 60 * 1000
+  
+  return tickets.value.filter(t => {
+    if (t.status !== 'IN_PROGRESS' && t.status !== 'RESOLVED') return false
+    if (!t.updatedAt) return false
+    
+    const diff = now - new Date(t.updatedAt).getTime()
+    return diff >= threeDaysInMs
+  })
+})
+
 // ADMIN/SUPPORT Role warnings
 const criticalClientQuotas = computed(() => {
   const currentYear = new Date().getFullYear()
@@ -276,7 +305,7 @@ const criticalClientQuotas = computed(() => {
 
 onMounted(async () => {
   try { const res = await getTickets(); tickets.value = res.data } catch { tickets.value = [] }
-  if (auth.isAdmin || auth.user?.role === 'SUPPORT') {
+  if (auth.isAdmin) {
     try { const res = await getClients(); clients.value = res.data } catch { clients.value = [] }
     try { const res = await getUsers(); users.value = res.data } catch { users.value = [] }
     try { const res = await getClientQuotas(); allQuotas.value = res.data } catch { allQuotas.value = [] }

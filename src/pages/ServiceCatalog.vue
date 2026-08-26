@@ -13,93 +13,109 @@
         <h2 class="text-xl lg:text-2xl font-bold text-gray-900">Service & Quota</h2>
         <p class="text-gray-500 text-sm mt-1">Kelola layanan maintenance dan kuota setiap client</p>
       </div>
-      <button @click="toggleServiceForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
-        <component :is="showServiceForm ? X : Plus" class="w-4 h-4" /> {{ showServiceForm ? 'Cancel' : 'Add Service' }}
+      <button @click="toggleServiceForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium transition-all text-sm">
+        <component :is="showServiceForm ? X : Plus" class="w-4 h-4" /> <span class="hidden sm:inline">{{ showServiceForm ? 'Cancel' : 'Add Service' }}</span>
       </button>
     </div>
 
     <!-- Service Form -->
-    <form v-if="showServiceForm" @submit.prevent="handleServiceSubmit" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">{{ editingServiceId !== null ? 'Edit Service' : 'Add New Service' }}</h3>
-      <div v-if="serviceError" class="text-red-600 text-sm mb-3 bg-red-50 p-2 rounded">{{ serviceError }}</div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Client *</label>
-          <select v-model="serviceForm.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" :disabled="editingServiceId !== null" required>
-            <option value="">Select client</option>
-            <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
-          </select>
+    <transition name="fade">
+      <form v-if="showServiceForm" @submit.prevent="handleServiceSubmit" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-gray-900">{{ editingServiceId !== null ? 'Edit Service' : 'Add New Service' }}</h3>
+          <p class="text-sm text-gray-500 mt-1">Isi detail layanan di bawah ini</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Services *</label>
-          <div class="flex flex-col gap-2 mt-1">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" value="PM" v-model="serviceForm.services" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-              <span class="text-sm text-gray-700">Preventive Maintenance (PM)</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" value="CM" v-model="serviceForm.services" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-              <span class="text-sm text-gray-700">Corrective Maintenance (CM)</span>
-            </label>
-          </div>
-        </div>
-        <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-          <textarea v-model="serviceForm.notes" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Optional notes about the service agreement"></textarea>
-        </div>
-      </div>
-      <!-- Offer to create quota after adding service -->
-      <div v-if="!editingServiceId" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" v-model="createQuotaAfter" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-          <span class="text-sm text-gray-700">Sekaligus buat quota untuk tahun {{ currentYear }}</span>
-        </label>
-        <div v-if="createQuotaAfter" class="grid grid-cols-2 gap-3 mt-3">
+        <div v-if="serviceError" class="text-red-600 text-sm mb-6 bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2"><AlertCircle class="w-4 h-4" /> {{ serviceError }}</div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">PM Quota</label>
-            <input v-model.number="autoQuotaForm.pmQuota" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" :disabled="!serviceForm.services.includes('PM')" />
+            <label class="block text-sm font-medium text-gray-700 mb-2">Client *</label>
+            <div class="relative">
+              <select v-model="serviceForm.clientId" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed" :disabled="editingServiceId !== null" required>
+                <option value="">Select client</option>
+                <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+              </select>
+              <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
           </div>
           <div>
-            <label class="block text-xs font-medium text-gray-600 mb-1">CM Quota</label>
-            <input v-model.number="autoQuotaForm.cmQuota" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" :disabled="!serviceForm.services.includes('CM')" />
+            <label class="block text-sm font-medium text-gray-700 mb-2">Services *</label>
+            <div class="flex flex-col gap-3 mt-1 bg-gray-50/50 p-3 rounded-xl border border-gray-100">
+              <label class="flex items-center gap-3 cursor-pointer w-fit">
+                <input type="checkbox" value="PM" v-model="serviceForm.services" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20 transition-all" />
+                <span class="text-sm font-medium text-gray-700">Preventive Maintenance (PM)</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer w-fit">
+                <input type="checkbox" value="CM" v-model="serviceForm.services" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500/20 transition-all" />
+                <span class="text-sm font-medium text-gray-700">Corrective Maintenance (CM)</span>
+              </label>
+            </div>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+            <textarea v-model="serviceForm.notes" rows="2" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" placeholder="Optional notes about the service agreement"></textarea>
           </div>
         </div>
-      </div>
-      <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
-        {{ editingServiceId !== null ? 'Update' : 'Add Service' }}
-      </button>
-    </form>
+        <!-- Offer to create quota after adding service -->
+        <div v-if="!editingServiceId" class="mt-6 p-5 bg-blue-50/50 border border-blue-100 rounded-xl">
+          <label class="flex items-center gap-3 cursor-pointer w-fit">
+            <input type="checkbox" v-model="createQuotaAfter" class="w-4 h-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500/20 transition-all" />
+            <span class="text-sm font-medium text-blue-900">Sekaligus buat quota untuk tahun {{ currentYear }}</span>
+          </label>
+          <div v-if="createQuotaAfter" class="grid grid-cols-2 gap-4 mt-4">
+            <div>
+              <label class="block text-xs font-medium text-blue-800 mb-2">PM Quota</label>
+              <input v-model.number="autoQuotaForm.pmQuota" type="number" min="0" class="w-full bg-white border border-blue-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50 disabled:bg-gray-50" :disabled="!serviceForm.services.includes('PM')" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-blue-800 mb-2">CM Quota</label>
+              <input v-model.number="autoQuotaForm.cmQuota" type="number" min="0" class="w-full bg-white border border-blue-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all disabled:opacity-50 disabled:bg-gray-50" :disabled="!serviceForm.services.includes('CM')" />
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end">
+          <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium transition-all">
+            {{ editingServiceId !== null ? 'Simpan Perubahan' : 'Add Service' }}
+          </button>
+        </div>
+      </form>
+    </transition>
 
     <!-- Quota Form -->
-    <form v-if="showQuotaForm" @submit.prevent="handleQuotaSubmit" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">{{ editingQuotaId ? 'Edit Quota' : 'Add Quota' }} — {{ quotaFormClientName }}</h3>
-      <div v-if="quotaError" class="text-red-600 text-sm mb-3 bg-red-50 p-2 rounded">{{ quotaError }}</div>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Year *</label>
-          <input v-model.number="quotaForm.year" type="number" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+    <transition name="fade">
+      <form v-if="showQuotaForm" @submit.prevent="handleQuotaSubmit" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-gray-900">{{ editingQuotaId ? 'Edit Quota' : 'Add Quota' }} <span class="text-gray-400 font-normal ml-2">| {{ quotaFormClientName }}</span></h3>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">PM Quota *</label>
-          <input v-model.number="quotaForm.pmQuota" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required :disabled="!clientHasService(quotaFormClientId, 'PM')" />
-          <p v-if="!clientHasService(quotaFormClientId, 'PM')" class="text-xs text-gray-400 mt-1">Client tidak memiliki layanan PM</p>
+        <div v-if="quotaError" class="text-red-600 text-sm mb-6 bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2"><AlertCircle class="w-4 h-4" /> {{ quotaError }}</div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Year *</label>
+            <input v-model.number="quotaForm.year" type="number" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">PM Quota *</label>
+            <input v-model.number="quotaForm.pmQuota" type="number" min="0" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50 disabled:bg-gray-100" required :disabled="!clientHasService(quotaFormClientId, 'PM')" />
+            <p v-if="!clientHasService(quotaFormClientId, 'PM')" class="text-xs text-red-400 mt-2 font-medium">Client tidak memiliki layanan PM</p>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">CM Quota *</label>
+            <input v-model.number="quotaForm.cmQuota" type="number" min="0" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 disabled:opacity-50 disabled:bg-gray-100" required :disabled="!clientHasService(quotaFormClientId, 'CM')" />
+            <p v-if="!clientHasService(quotaFormClientId, 'CM')" class="text-xs text-red-400 mt-2 font-medium">Client tidak memiliki layanan CM</p>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">CM Quota *</label>
-          <input v-model.number="quotaForm.cmQuota" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required :disabled="!clientHasService(quotaFormClientId, 'CM')" />
-          <p v-if="!clientHasService(quotaFormClientId, 'CM')" class="text-xs text-gray-400 mt-1">Client tidak memiliki layanan CM</p>
+        <div class="flex justify-end gap-3 mt-8">
+          <button type="button" @click="closeQuotaForm()" class="px-6 py-3 border border-gray-200 bg-white rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all">Cancel</button>
+          <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium transition-all">{{ editingQuotaId ? 'Simpan Perubahan' : 'Buat Quota' }}</button>
         </div>
-      </div>
-      <div class="flex gap-2 mt-4">
-        <button type="submit" class="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">{{ editingQuotaId ? 'Update' : 'Create' }}</button>
-        <button type="button" @click="closeQuotaForm()" class="bg-gray-200 text-gray-700 px-6 py-2.5 rounded-lg hover:bg-gray-300 font-medium">Cancel</button>
-      </div>
-    </form>
+      </form>
+    </transition>
 
     <!-- Search -->
-    <div class="relative mb-4">
-      <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-      <input v-model="search" type="text" placeholder="Search by client name..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 mb-6 w-full">
+      <div class="relative w-full">
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input v-model="search" type="text" placeholder="Search by client name..." class="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-2 text-sm transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
+      </div>
     </div>
 
     <!-- Table -->
@@ -180,8 +196,8 @@
                 </td>
                 <td class="px-4 py-4" @click.stop>
                   <div class="flex gap-1">
-                    <button @click="startEditService(item)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Service'"><Pencil class="w-4 h-4" /></button>
-                    <button @click="handleDeleteService(item.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus Service'"><Trash2 class="w-4 h-4" /></button>
+                    <button @click="startEditService(item)" class="p-1.5 rounded-xl hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Service'"><Pencil class="w-4 h-4" /></button>
+                    <button @click="handleDeleteService(item.id)" class="p-1.5 rounded-xl hover:bg-red-50 text-red-600" v-tooltip="'Hapus Service'"><Trash2 class="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -191,7 +207,7 @@
                   <div class="ml-4">
                     <div class="flex items-center justify-between mb-3">
                       <h4 class="text-sm font-semibold text-gray-700">Quota Detail — {{ item.clientCompanyName }}</h4>
-                      <button @click="openQuotaForm(item.clientId, item.clientCompanyName)" class="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 font-medium">
+                      <button @click="openQuotaForm(item.clientId, item.clientCompanyName)" class="flex items-center gap-1 text-xs bg-blue-600 text-white px-3 py-1.5 rounded-xl hover:bg-blue-700 font-medium">
                         <Plus class="w-3 h-3" /> Add Quota
                       </button>
                     </div>
@@ -201,7 +217,7 @@
                       Belum ada quota untuk client ini.
                     </div>
                     <div v-else class="space-y-3">
-                      <div v-for="q in getClientQuotaList(item.clientId)" :key="q.id" class="bg-white border border-gray-200 rounded-lg p-4">
+                      <div v-for="q in getClientQuotaList(item.clientId)" :key="q.id" class="bg-white border border-gray-200 rounded-xl p-4">
                         <div class="flex items-center justify-between mb-2">
                           <span class="text-sm font-semibold text-gray-800">Tahun {{ q.year }}</span>
                           <div class="flex gap-1">
@@ -268,14 +284,14 @@
               </div>
             </div>
             <div class="flex gap-1">
-              <button @click="startEditService(item)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
-              <button @click="handleDeleteService(item.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+              <button @click="startEditService(item)" class="p-1.5 rounded-xl hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
+              <button @click="handleDeleteService(item.id)" class="p-1.5 rounded-xl hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
             </div>
           </div>
           <div v-if="item.notes" class="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded italic">📝 {{ item.notes }}</div>
           
           <!-- Current Year Quota Summary Mobile -->
-          <div class="bg-gray-50 rounded-lg p-3 mb-3 border border-gray-100">
+          <div class="bg-gray-50 rounded-xl p-3 mb-3 border border-gray-100">
             <p class="text-xs font-semibold text-gray-700 mb-2">Quota {{ currentYear }}</p>
             <div v-if="getCurrentYearQuota(item.clientId)" class="flex flex-col gap-2">
               <div v-if="item.services?.includes('PM')" class="flex items-center gap-2">
@@ -344,7 +360,7 @@ import { useRoute } from 'vue-router'
 import { getServiceCatalogs, createServiceCatalog, updateServiceCatalog, deleteServiceCatalog } from '../api/serviceCatalog'
 import { getClientQuotas, createClientQuota, updateClientQuota, deleteClientQuota } from '../api/quotas'
 import { getClients } from '../api/clients'
-import { Search, Plus, X, Pencil, Trash2, ChevronRight, Info, AlertTriangle, AlertCircle, Layers } from 'lucide-vue-next'
+import { Search, Plus, X, Pencil, Trash2, ChevronRight, ChevronDown, Info, AlertTriangle, AlertCircle, Layers } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { useToastStore } from '../stores/toast'
 
@@ -621,3 +637,4 @@ async function handleDeleteQuota(id) {
   }
 }
 </script>
+

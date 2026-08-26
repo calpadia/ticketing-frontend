@@ -1,16 +1,16 @@
 <template>
   <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">{{ label }} {{ required ? '*' : '' }}</label>
+    <label class="block text-sm font-medium text-gray-700 mb-2">{{ label }} {{ required ? '*' : '' }}</label>
     <div class="relative">
       <input
         :value="modelValue"
         @input="$emit('update:modelValue', $event.target.value)"
         :type="showPassword ? 'text' : 'password'"
-        class="w-full border border-gray-300 rounded-lg px-3 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 pr-11 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
         :placeholder="placeholder"
         :required="required"
       />
-      <button type="button" @click="showPassword = !showPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+      <button type="button" @click="showPassword = !showPassword" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
         <EyeOff v-if="showPassword" class="w-4 h-4" />
         <Eye v-else class="w-4 h-4" />
       </button>

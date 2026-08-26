@@ -42,7 +42,7 @@
           @click="$emit('close')"
           v-tooltip="collapsed ? item.label : ''"
           :class="[
-            'flex items-center rounded-lg transition-colors text-[13px] relative group',
+            'flex items-center rounded-xl transition-colors text-[13px] relative group',
             collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-2.5 py-2',
             isActive(item.to)
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
@@ -52,10 +52,6 @@
           <component :is="item.icon" class="w-4 h-4 shrink-0" />
           <span v-if="!collapsed" class="font-medium flex-1 whitespace-nowrap overflow-hidden">{{ item.label }}</span>
           <!-- Badges -->
-          <span v-if="!collapsed && item.to === '/chat' && totalUnread > 0" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
-            {{ totalUnread > 99 ? '99+' : totalUnread }}
-          </span>
-          <span v-if="collapsed && item.to === '/chat' && totalUnread > 0" class="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
           <span v-if="!collapsed && item.to === '/tickets' && newTicketCount > 0" class="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
             {{ newTicketCount > 99 ? '99+' : newTicketCount }}
           </span>
@@ -70,7 +66,7 @@
           @click="!collapsed && (clientMenuOpen = true); $emit('close')"
           v-tooltip="collapsed ? 'Client Management' : ''"
           :class="[
-            'flex items-center rounded-lg transition-colors w-full text-[13px] relative group',
+            'flex items-center rounded-xl transition-colors w-full text-[13px] relative group',
             collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-2.5 py-2',
             isClientSectionActive
               ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
@@ -91,7 +87,7 @@
             :to="sub.to"
             @click="$emit('close')"
             :class="[
-              'flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors',
+              'flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-colors',
               isActive(sub.to)
                 ? 'bg-blue-600/80 text-white'
                 : 'text-gray-400 hover:bg-gray-800 hover:text-white'
@@ -103,40 +99,6 @@
         </div>
       </div>
     </nav>
-
-    <!-- User info + Logout -->
-    <div class="border-t border-gray-700 pt-3 mt-3 px-2 pb-3">
-      <div v-if="!collapsed" class="px-0.5 mb-2">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-xs shrink-0">
-            {{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-xs font-medium truncate">{{ user?.name }}</p>
-            <p class="text-[10px] text-gray-400 truncate">{{ user?.email }}</p>
-          </div>
-        </div>
-        <span class="inline-block mt-1.5 px-1.5 py-0.5 rounded text-[10px] bg-blue-600/20 text-blue-300 border border-blue-600/30">
-          {{ user?.role }}
-        </span>
-      </div>
-      <div v-else class="flex justify-center mb-2" v-tooltip="user?.name">
-        <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-xs">
-          {{ user?.name?.charAt(0)?.toUpperCase() || 'U' }}
-        </div>
-      </div>
-      <button
-        @click="handleLogout"
-        v-tooltip="collapsed ? 'Logout' : ''"
-        :class="[
-          'flex items-center rounded-lg text-gray-300 hover:bg-red-600/20 hover:text-red-300 transition-colors w-full text-[13px]',
-          collapsed ? 'justify-center px-2 py-2' : 'gap-2.5 px-2.5 py-2'
-        ]"
-      >
-        <LogOut class="w-4 h-4 shrink-0" />
-        <span v-if="!collapsed" class="font-medium">Logout</span>
-      </button>
-    </div>
   </aside>
 </template>
 
@@ -145,7 +107,7 @@ import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notifications'
-import { LayoutDashboard, Ticket, Building2, ClipboardList, Users, FileBarChart, LogOut, BookOpen, MessageCircle, UserPlus, ChevronDown, FolderKanban, X, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next'
+import { LayoutDashboard, Ticket, Building2, ClipboardList, Users, FileBarChart, BookOpen, MessageCircle, UserPlus, ChevronDown, FolderKanban, X, PanelLeftClose, PanelLeftOpen } from 'lucide-vue-next'
 
 const props = defineProps({
   mobileOpen: { type: Boolean, default: false }
@@ -175,7 +137,6 @@ function expand() {
 const allNavItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'SUPPORT', 'TECHNICAL_SUPPORT', 'USER'] },
   { to: '/tickets', label: 'Tickets', icon: Ticket, roles: ['ADMIN', 'SUPPORT', 'TECHNICAL_SUPPORT', 'USER'] },
-  { to: '/chat', label: 'Chat', icon: MessageCircle, roles: ['ADMIN', 'SUPPORT', 'TECHNICAL_SUPPORT', 'USER'] },
   { to: '/knowledge-base', label: 'Knowledge Base', icon: BookOpen, roles: ['ADMIN', 'SUPPORT', 'TECHNICAL_SUPPORT', 'USER'] },
   { to: '/users', label: 'Users', icon: Users, roles: ['ADMIN'] },
   { to: '/sla-report', label: 'SLA Report', icon: FileBarChart, roles: ['ADMIN'] },
@@ -199,10 +160,5 @@ const isClientSectionActive = computed(() =>
 function isActive(to) {
   if (to === '/') return route.path === '/'
   return route.path === to || route.path.startsWith(to + '/')
-}
-
-function handleLogout() {
-  auth.logout()
-  router.push('/login')
 }
 </script>

@@ -37,3 +37,24 @@ button:not(:disabled), [role="button"]:not(:disabled) {
 .table-responsive table {
   @apply min-w-[640px];
 }
+
+/* Global Page Transitions */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* App-level Transitions (Opacity only, no layout shift) */
+.fade-app-enter-active, .fade-app-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-app-enter-from, .fade-app-leave-to {
+  opacity: 0;
+}

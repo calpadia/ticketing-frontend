@@ -11,55 +11,71 @@
         <h2 class="text-2xl font-bold text-gray-900">Clients</h2>
         <p class="text-gray-500 text-sm mt-1">{{ clients.length }} client(s) registered</p>
       </div>
-      <button @click="toggleForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
-        <component :is="showForm ? X : Plus" class="w-4 h-4" /> {{ showForm ? 'Cancel' : 'New Client' }}
+      <button @click="toggleForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium transition-all text-sm">
+        <component :is="showForm ? X : Plus" class="w-4 h-4" /> <span class="hidden sm:inline">{{ showForm ? 'Cancel' : 'New Client' }}</span>
       </button>
     </div>
 
-    <form v-if="showForm" @submit.prevent="handleSubmit" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">{{ editingId ? 'Edit Client' : 'Create New Client' }}</h3>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Client *</label>
-          <input v-model="form.companyName" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="PT Example Indonesia" required />
+    <transition name="fade">
+      <form v-if="showForm" @submit.prevent="handleSubmit" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+        <div class="mb-6">
+          <h3 class="text-xl font-bold text-gray-900">{{ editingId ? 'Edit Client' : 'Create New Client' }}</h3>
+          <p class="text-sm text-gray-500 mt-1">Isi detail perusahaan dan kontak di bawah ini</p>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nama Kontak *</label>
-          <input v-model="form.contactPersonName" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="John Doe" required />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-          <input v-model="form.contactPersonEmail" type="email" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="contact@company.com" required />
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Telepon *</label>
-          <input v-model="form.contactPersonPhone" type="tel" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="08123456789" required />
-        </div>
-        <div v-if="editingId" class="md:col-span-2">
-          <label class="flex items-center gap-3 cursor-pointer">
-            <div class="relative">
-              <input type="checkbox" v-model="form.isActive" class="sr-only peer" @change="handleToggleStatus" />
-              <div class="w-10 h-5 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors"></div>
-              <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Client *</label>
+            <input v-model="form.companyName" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" placeholder="PT Example Indonesia" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nama Kontak *</label>
+            <input v-model="form.contactPersonName" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" placeholder="John Doe" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+            <input v-model="form.contactPersonEmail" type="email" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" placeholder="contact@company.com" required />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Nomor Telepon *</label>
+            <input v-model="form.contactPersonPhone" type="tel" inputmode="numeric" pattern="[0-9]*" @input="form.contactPersonPhone = form.contactPersonPhone.replace(/\D/g, '')" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" placeholder="08123456789" required />
+          </div>
+          <div v-if="editingId" class="md:col-span-2 mt-2">
+            <div class="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+              <label class="flex items-center gap-3 cursor-pointer w-fit">
+                <div class="relative">
+                  <input type="checkbox" v-model="form.isActive" class="sr-only peer" @change="handleToggleStatus" />
+                  <div class="w-11 h-6 bg-gray-300 rounded-full peer-checked:bg-green-500 transition-colors duration-300"></div>
+                  <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow peer-checked:translate-x-5 transition-transform duration-300"></div>
+                </div>
+                <div>
+                  <span class="text-sm font-semibold text-gray-900">Client Aktif</span>
+                  <p class="text-xs text-gray-500 mt-0.5">{{ form.isActive ? 'Klien ini memiliki akses penuh ke sistem' : 'Klien dinonaktifkan dan kehilangan akses' }}</p>
+                </div>
+              </label>
             </div>
-            <span class="text-sm font-medium text-gray-700">Client Aktif</span>
-            <span v-if="!form.isActive" class="text-xs text-red-500 ml-2">(Client akan dinonaktifkan)</span>
-          </label>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end">
+          <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium transition-all">{{ editingId ? 'Simpan Perubahan' : 'Daftarkan Client' }}</button>
+        </div>
+      </form>
+    </transition>
+
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-3 items-center w-full">
+      <div class="relative flex-1 w-full">
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input v-model="search" type="text" placeholder="Search clients by name or email..." class="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-2 text-sm transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
+      </div>
+      <div class="flex w-full md:w-auto shrink-0">
+        <div class="relative w-full md:w-40">
+          <select v-model="filterStatus" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 text-sm rounded-xl pl-4 pr-10 py-2 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+            <option value="">All Status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+          </select>
+          <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
         </div>
       </div>
-      <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">{{ editingId ? 'Update' : 'Create' }}</button>
-    </form>
-
-    <div class="flex flex-col sm:flex-row gap-3 mb-4">
-      <div class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <input v-model="search" type="text" placeholder="Search clients..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      </div>
-      <select v-model="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="">All Status</option>
-        <option value="ACTIVE">Active</option>
-        <option value="INACTIVE">Inactive</option>
-      </select>
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
@@ -104,8 +120,8 @@
               </td>
               <td class="px-6 py-3">
                 <div class="flex gap-2">
-                  <button @click.stop="startEdit(c)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Client'"><Pencil class="w-4 h-4" /></button>
-                  <button @click.stop="handleDelete(c.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus Client'"><Trash2 class="w-4 h-4" /></button>
+                  <button @click.stop="startEdit(c)" class="p-1.5 rounded-xl hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Client'"><Pencil class="w-4 h-4" /></button>
+                  <button @click.stop="handleDelete(c.id)" class="p-1.5 rounded-xl hover:bg-red-50 text-red-600" v-tooltip="'Hapus Client'"><Trash2 class="w-4 h-4" /></button>
                 </div>
               </td>
             </tr>
@@ -134,8 +150,8 @@
               <p class="text-sm text-gray-500">{{ c.contactPersonName || '-' }}</p>
             </div>
             <div class="flex gap-1" @click.stop>
-              <button @click="startEdit(c)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
-              <button @click="handleDelete(c.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+              <button @click="startEdit(c)" class="p-1.5 rounded-xl hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
+              <button @click="handleDelete(c.id)" class="p-1.5 rounded-xl hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
             </div>
           </div>
           <div class="grid grid-cols-2 gap-2 mb-3">
@@ -157,7 +173,7 @@ import { getUsers } from '../api/users'
 import { getProjectsByClientId } from '../api/projects'
 import { getClientQuotas } from '../api/quotas'
 import { getClientSupports } from '../api/clientSupports'
-import { Search, Plus, X, Pencil, Trash2, Building2 } from 'lucide-vue-next'
+import { Search, Plus, X, Pencil, Trash2, Building2, ChevronDown } from 'lucide-vue-next'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import { useToastStore } from '../stores/toast'
 
@@ -274,3 +290,4 @@ async function handleDelete(id) {
   }
 }
 </script>
+

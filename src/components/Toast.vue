@@ -5,7 +5,7 @@
         v-for="toast in toasts"
         :key="toast.id"
         :class="[
-          'flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg max-w-sm',
+          'flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg max-w-sm',
           toast.type === 'error' ? 'bg-red-600 text-white' :
           toast.type === 'warning' ? 'bg-yellow-500 text-white' :
           toast.type === 'success' ? 'bg-green-600 text-white' :

@@ -5,6 +5,7 @@ import { getUnreadCount, markTicketAsRead as apiMarkRead } from '../api/notifica
 export const useNotificationStore = defineStore('notifications', () => {
   const newTicketCount = ref(0)
   const totalUnread = ref(0)
+  const unreadDetails = ref([])
   const incomingTicket = ref(null)
 
   // Fetch unread count from the new backend API
@@ -13,6 +14,7 @@ export const useNotificationStore = defineStore('notifications', () => {
       const res = await getUnreadCount()
       newTicketCount.value = res.data.unreadTickets
       totalUnread.value = res.data.unreadMessages
+      unreadDetails.value = res.data.details || []
     } catch (err) {
       console.error('Failed to fetch unread count:', err)
     }
@@ -45,6 +47,7 @@ export const useNotificationStore = defineStore('notifications', () => {
 
   return {
     totalUnread,
+    unreadDetails,
     newTicketCount,
     incomingTicket,
     fetchUnreadCount,

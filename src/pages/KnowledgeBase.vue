@@ -6,27 +6,37 @@
     </div>
 
     <!-- Search & Filter -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-6">
-      <div class="relative flex-1">
-        <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <input v-model="search" type="text" placeholder="Cari berdasarkan judul, deskripsi, atau client..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+    <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 mb-6 flex flex-col lg:flex-row gap-3 items-center w-full">
+      <div class="relative flex-1 w-full">
+        <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+        <input v-model="search" type="text" placeholder="Cari berdasarkan judul, deskripsi, atau client..." class="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-2 text-sm transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
       </div>
-      <select v-model="filterType" class="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="">All Types</option>
-        <option value="PM">PM</option>
-        <option value="CM">CM</option>
-      </select>
-      <select v-model="filterPriority" class="border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-        <option value="">All Priority</option>
-        <option value="L1">L1</option>
-        <option value="L2">L2</option>
-        <option value="L3">L3</option>
-        <option value="L4">L4</option>
-      </select>
+      
+      <div class="flex flex-wrap md:flex-nowrap gap-3 w-full lg:w-auto shrink-0">
+        <div class="relative w-full md:w-32">
+          <select v-model="filterType" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 text-sm rounded-xl pl-4 pr-10 py-2 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+            <option value="">All Types</option>
+            <option value="PM">PM</option>
+            <option value="CM">CM</option>
+          </select>
+          <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        </div>
+        
+        <div class="relative w-full md:w-36">
+          <select v-model="filterPriority" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 text-sm rounded-xl pl-4 pr-10 py-2 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+            <option value="">All Priority</option>
+            <option value="L1">L1 (Critical)</option>
+            <option value="L2">L2 (High)</option>
+            <option value="L3">L3 (Medium)</option>
+            <option value="L4">L4 (Low)</option>
+          </select>
+          <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+        </div>
+      </div>
     </div>
 
     <!-- Info banner -->
-    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-start gap-3">
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-start gap-3">
       <BookOpen class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
       <div>
         <p class="text-sm text-blue-800 font-medium">Sebelum membuat ticket baru</p>
@@ -83,7 +93,8 @@
     </div>
 
     <!-- Detail modal -->
-    <div v-if="selectedItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="selectedItem = null">
+    <transition name="fade">
+      <div v-if="selectedItem" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="selectedItem = null">
       <div class="bg-white rounded-xl shadow-xl max-w-2xl w-full p-6 max-h-[80vh] overflow-y-auto" @click.stop>
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gray-900">Knowledge Detail</h3>
@@ -113,7 +124,7 @@
           </div>
 
           <!-- Resolution notes from support -->
-          <div v-if="resolutionLog" class="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div v-if="resolutionLog" class="bg-green-50 border border-green-200 rounded-xl p-4">
             <div class="flex items-center gap-2 mb-2">
               <CheckCircle class="w-4 h-4 text-green-600" />
               <p class="text-xs font-semibold text-green-700 uppercase tracking-wide">Catatan Resolved</p>
@@ -126,7 +137,7 @@
               <span>{{ formatDate(resolutionLog.changedAt) }}</span>
             </div>
           </div>
-          <div v-else-if="loadingResolution" class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <div v-else-if="loadingResolution" class="bg-gray-50 border border-gray-200 rounded-xl p-4">
             <p class="text-sm text-gray-400 italic">Memuat catatan resolved...</p>
           </div>
 
@@ -146,15 +157,16 @@
             <p class="text-sm">{{ formatDate(selectedItem.createdAt) }}</p>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue'
 import { getTickets, getTicketProgress } from '../api/tickets'
-import { Search, BookOpen, X, CheckCircle } from 'lucide-vue-next'
+import { Search, BookOpen, X, CheckCircle, ChevronDown } from 'lucide-vue-next'
 import PriorityBadge from '../components/PriorityBadge.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 
@@ -230,3 +242,5 @@ function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'
 }
 </script>
+
+

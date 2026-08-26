@@ -11,7 +11,7 @@
         <h2 class="text-2xl font-bold text-gray-900">Projects</h2>
         <p class="text-gray-500 text-sm mt-1">Kelola project per client</p>
       </div>
-      <button @click="toggleForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
+      <button @click="toggleForm()" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 font-medium">
         <component :is="showForm ? X : Plus" class="w-4 h-4" /> {{ showForm ? 'Cancel' : 'New Project' }}
       </button>
     </div>
@@ -21,26 +21,26 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Nama Project *</label>
-          <input v-model="form.projectName" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. ECM Implementation" required />
+          <input v-model="form.projectName" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. ECM Implementation" required />
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Client *</label>
-          <select v-model="form.clientId" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+          <select v-model="form.clientId" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             <option value="">Pilih Client...</option>
             <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
           </select>
         </div>
         <div class="md:col-span-2">
           <label class="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
-          <textarea v-model="form.description" rows="2" class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Deskripsi project (opsional)"></textarea>
+          <textarea v-model="form.description" rows="2" class="w-full border border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Deskripsi project (opsional)"></textarea>
         </div>
       </div>
-      <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 font-medium">{{ editingId ? 'Update' : 'Create' }}</button>
+      <button type="submit" class="mt-4 bg-blue-600 text-white px-6 py-2.5 rounded-xl hover:bg-blue-700 font-medium">{{ editingId ? 'Update' : 'Create' }}</button>
     </form>
 
     <div class="relative mb-4">
       <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-      <input v-model="search" type="text" placeholder="Search projects..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <input v-model="search" type="text" placeholder="Search projects..." class="w-full border border-gray-300 rounded-xl pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
@@ -82,8 +82,8 @@
               </td>
               <td class="px-6 py-3">
                 <div class="flex gap-2">
-                  <button @click.stop="startEdit(p)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Project'"><Pencil class="w-4 h-4" /></button>
-                  <button @click.stop="handleDelete(p.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600" v-tooltip="'Hapus Project'"><Trash2 class="w-4 h-4" /></button>
+                  <button @click.stop="startEdit(p)" class="p-1.5 rounded-xl hover:bg-blue-50 text-blue-600" v-tooltip="'Edit Project'"><Pencil class="w-4 h-4" /></button>
+                  <button @click.stop="handleDelete(p.id)" class="p-1.5 rounded-xl hover:bg-red-50 text-red-600" v-tooltip="'Hapus Project'"><Trash2 class="w-4 h-4" /></button>
                 </div>
               </td>
             </tr>
@@ -113,8 +113,8 @@
               <p class="text-sm text-gray-500">{{ p.clientCompanyName }}</p>
             </div>
             <div class="flex gap-1" @click.stop>
-              <button @click="startEdit(p)" class="p-1.5 rounded-lg hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
-              <button @click="handleDelete(p.id)" class="p-1.5 rounded-lg hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
+              <button @click="startEdit(p)" class="p-1.5 rounded-xl hover:bg-blue-50 text-blue-600"><Pencil class="w-4 h-4" /></button>
+              <button @click="handleDelete(p.id)" class="p-1.5 rounded-xl hover:bg-red-50 text-red-600"><Trash2 class="w-4 h-4" /></button>
             </div>
           </div>
           <p class="text-xs text-gray-600 mb-3 line-clamp-2">{{ p.description || '-' }}</p>
@@ -124,8 +124,9 @@
     </div>
 
     <!-- Project Detail Modal -->
-    <div v-if="selectedProject" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="selectedProject = null">
-      <div class="bg-white rounded-xl shadow-xl max-w-lg w-full flex flex-col max-h-[80vh]" @click.stop>
+    <transition name="fade">
+      <div v-if="selectedProject" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" @click="selectedProject = null">
+      <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full flex flex-col max-h-[80vh]" @click.stop>
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 shrink-0">
           <h3 class="text-lg font-bold text-gray-900">{{ selectedProject.projectName }}</h3>
           <button @click="selectedProject = null" class="text-gray-400 hover:text-gray-600"><X class="w-5 h-5" /></button>
@@ -155,7 +156,7 @@
             <p class="text-xs text-gray-500 mb-2">Support Engineers ({{ projectSupports.length }})</p>
             <div v-if="projectSupports.length === 0" class="text-xs text-gray-400">Belum ada support engineer untuk client ini.</div>
             <div v-else class="space-y-1">
-              <div v-for="s in projectSupports" :key="s.id" class="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2">
+              <div v-for="s in projectSupports" :key="s.id" class="flex items-center gap-2 bg-green-50 rounded-xl px-3 py-2">
                 <div class="w-6 h-6 rounded-full bg-green-600 text-white flex items-center justify-center text-xs font-medium">{{ s.supportUserName?.charAt(0) }}</div>
                 <span class="text-sm text-gray-900">{{ s.supportUserName }}</span>
                 <span class="text-xs text-gray-400 ml-auto">{{ s.supportUserEmail }}</span>
@@ -164,7 +165,8 @@
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -258,3 +260,5 @@ async function handleDelete(id) {
   try { await deleteProject(id); projects.value = (await getProjects()).data } catch {}
 }
 </script>
+
+

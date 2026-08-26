@@ -28,6 +28,9 @@ export const createTicket = (data, files) => {
 // Update ticket status
 export const updateTicketStatus = (id, data) => api.put(`/tickets/${id}/status`, data)
 
+// Update ticket priority (level)
+export const updateTicketPriority = (id, data) => api.put(`/tickets/${id}/priority`, data)
+
 // Get progress logs
 export const getTicketProgress = (id) => api.get(`/tickets/${id}/progress`)
 

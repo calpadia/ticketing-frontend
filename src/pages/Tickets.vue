@@ -1,33 +1,65 @@
 <template>
   <div>
     <ConfirmDialog ref="confirmDialog" />
-    <!-- List view -->
-    <div v-if="!showForm">
+    <transition name="fade" mode="out-in">
+      <!-- List view -->
+      <div v-if="!showForm">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h2 class="text-xl lg:text-2xl font-bold text-gray-900">Tickets</h2>
           <p class="text-gray-500 text-sm mt-1">{{ filtered.length }} ticket(s) found</p>
         </div>
-        <div class="flex gap-2">
-          <button @click="handleExport" :disabled="loadingExport" class="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-50 font-medium disabled:opacity-50">
-            <Loader2 v-if="loadingExport" class="w-4 h-4 animate-spin" />
-            <FileDown v-else class="w-4 h-4" /> {{ loadingExport ? 'Exporting...' : 'Export CSV' }}
+        <div class="flex gap-2 shrink-0">
+          <button @click="handleExport" :disabled="loadingExport" class="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl hover:bg-gray-50 hover:border-gray-300 font-medium transition-all shadow-sm disabled:opacity-50 text-sm">
+            <Loader2 v-if="loadingExport" class="w-4 h-4 animate-spin text-gray-400" />
+            <FileDown v-else class="w-4 h-4 text-gray-400" /> <span class="hidden sm:inline">{{ loadingExport ? 'Exporting...' : 'Export CSV' }}</span>
           </button>
-          <button v-if="auth.user?.role === 'ADMIN' || auth.user?.role === 'USER'" @click="showForm = true" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 font-medium">
-            <Plus class="w-4 h-4" /> Registrasi Tiket
+          <button v-if="auth.user?.role === 'ADMIN' || auth.user?.role === 'USER'" @click="showForm = true" class="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl hover:bg-blue-700 hover:shadow-md hover:shadow-blue-600/20 font-medium transition-all text-sm">
+            <Plus class="w-4 h-4" /> <span class="hidden sm:inline">Registrasi Tiket</span>
           </button>
         </div>
       </div>
 
-      <!-- Search & Filter -->
-      <div class="flex flex-col sm:flex-row gap-3 mb-4">
-        <div class="relative flex-1">
-          <Search class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input v-model="search" type="text" placeholder="Search tickets..." class="w-full border border-gray-300 rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <!-- Control Panel: Search & Filter -->
+      <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 mb-6 flex flex-col lg:flex-row gap-3 items-center w-full">
+        <!-- Search Input -->
+        <div class="relative flex-1 w-full">
+          <Search class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input v-model="search" type="text" placeholder="Search tickets, subjects, or clients..." class="w-full bg-gray-50/50 border border-gray-200 rounded-xl pl-11 pr-4 py-2 text-sm transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" />
         </div>
-        <select v-model="filterStatus" class="border border-gray-300 rounded-lg px-3 py-2.5 text-sm"><option value="">All Status</option><option value="OPEN">Open</option><option value="IN_PROGRESS">In Progress</option><option value="RESOLVED">Resolved</option><option value="CLOSED">Closed</option></select>
-        <select v-model="filterPriority" class="border border-gray-300 rounded-lg px-3 py-2.5 text-sm"><option value="">All Priority</option><option value="L1">L1</option><option value="L2">L2</option><option value="L3">L3</option><option value="L4">L4</option></select>
-        <select v-if="auth.isAdmin" v-model="filterClient" class="border border-gray-300 rounded-lg px-3 py-2.5 text-sm max-w-[200px] truncate"><option value="">All Clients</option><option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option></select>
+        
+        <!-- Filters -->
+        <div class="flex flex-wrap md:flex-nowrap gap-3 w-full lg:w-auto shrink-0">
+          <div class="relative w-full md:w-36">
+            <select v-model="filterStatus" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 text-sm rounded-xl pl-4 pr-10 py-2 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+              <option value="">All Status</option>
+              <option value="OPEN">Open</option>
+              <option value="IN_PROGRESS">In Progress</option>
+              <option value="RESOLVED">Resolved</option>
+              <option value="CLOSED">Closed</option>
+            </select>
+            <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+          
+          <div class="relative w-full md:w-36">
+            <select v-model="filterPriority" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 text-sm rounded-xl pl-4 pr-10 py-2 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+              <option value="">All Priority</option>
+              <option value="L1">L1 (Critical)</option>
+              <option value="L2">L2 (High)</option>
+              <option value="L3">L3 (Medium)</option>
+              <option value="L4">L4 (Low)</option>
+            </select>
+            <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div v-if="auth.isAdmin" class="relative w-full md:w-48">
+            <select v-model="filterClient" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-700 text-sm rounded-xl pl-4 pr-10 py-2 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer truncate">
+              <option value="">All Clients</option>
+              <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+            </select>
+            <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+        </div>
       </div>
 
       <!-- Table -->
@@ -43,6 +75,7 @@
                 <th class="px-6 py-3 font-medium">Priority</th>
                 <th class="px-6 py-3 font-medium">Type</th>
                 <th class="px-6 py-3 font-medium">Client</th>
+                <th class="px-6 py-3 font-medium">Assignee</th>
                 <th class="px-6 py-3 font-medium">Created</th>
               </tr>
             </thead>
@@ -54,10 +87,11 @@
                 <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded w-10"></div></td>
                 <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded-full w-8"></div></td>
                 <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-32"></div></td>
+                <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded-full w-16"></div></td>
                 <td class="px-6 py-4"><div class="h-3 bg-gray-200 rounded w-20"></div></td>
               </tr>
               <tr v-else-if="paginated.length === 0">
-                <td colspan="7" class="text-center py-16">
+                <td colspan="8" class="text-center py-16">
                   <div class="flex flex-col items-center justify-center">
                     <div class="text-gray-300 mb-3"><svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-ticket"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg></div>
                     <p class="text-gray-500 font-medium">Belum ada tiket.</p>
@@ -66,18 +100,32 @@
                 </td>
               </tr>
               <tr v-for="t in paginated" :key="t.id" :class="['cursor-pointer hover:bg-gray-50', t.priority === 'L1' ? 'border-l-4 border-l-red-500' : '']" @click="openTicketDetail(t)">
-                <td class="px-6 py-3 font-mono text-xs text-blue-600">{{ t.ticketNumber }}</td>
-                <td class="px-6 py-3">
+                <td class="px-6 py-3 font-mono text-xs text-blue-600 whitespace-nowrap">{{ t.ticketNumber }}</td>
+                <td class="px-6 py-3 max-w-[250px] lg:max-w-[400px]">
                   <div class="flex items-center gap-2">
-                    <span class="font-medium text-gray-900">{{ t.title }}</span>
-                    <span v-if="t.isRead === false" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse">NEW</span>
+                    <span class="font-medium text-gray-900 truncate" :title="t.title">{{ t.title }}</span>
+                    <span v-if="t.unreadMessageCount > 0" class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm shrink-0">
+                      {{ t.unreadMessageCount }}
+                    </span>
+                    <span v-if="t.isRead === false" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse shrink-0">NEW</span>
                   </div>
                 </td>
-                <td class="px-6 py-3"><StatusBadge :status="t.status" /></td>
+                <td class="px-6 py-3 whitespace-nowrap"><StatusBadge :status="t.status" /></td>
                 <td class="px-6 py-3"><PriorityBadge :priority="t.priority" /></td>
                 <td class="px-6 py-3"><span :class="['px-2.5 py-0.5 rounded-full text-xs font-medium border', t.maintenanceType === 'PM' ? 'bg-purple-100 text-purple-800 border-purple-200' : 'bg-teal-100 text-teal-800 border-teal-200']">{{ t.maintenanceType }}</span></td>
-                <td class="px-6 py-3 text-gray-600">{{ t.clientCompanyName }}</td>
-                <td class="px-6 py-3 text-gray-500 text-xs">{{ formatDate(t.createdAt) }}</td>
+                <td class="px-6 py-3 text-gray-600 truncate max-w-[150px] lg:max-w-[200px]" :title="t.clientCompanyName">{{ t.clientCompanyName }}</td>
+                <td class="px-6 py-3 min-w-[100px]">
+                  <div class="flex items-center gap-1">
+                    <span v-if="t.assignments && t.assignments.length > 0" class="px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-medium whitespace-nowrap">
+                      {{ t.assignments[0].assignedToName.split(' ')[0] }}
+                    </span>
+                    <span v-if="t.assignments && t.assignments.length > 1" class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-medium whitespace-nowrap" :title="t.assignments.slice(1).map(a => a.assignedToName).join(', ')">
+                      +{{ t.assignments.length - 1 }}
+                    </span>
+                    <span v-if="!t.assignments || t.assignments.length === 0" class="text-[10px] text-gray-400 italic">Unassigned</span>
+                  </div>
+                </td>
+                <td class="px-6 py-3 text-gray-500 text-xs whitespace-nowrap">{{ formatDate(t.createdAt) }}</td>
               </tr>
             </tbody>
           </table>
@@ -106,10 +154,19 @@
               <StatusBadge :status="t.status" />
             </div>
             <h4 class="font-medium text-gray-900 mb-1 flex items-center gap-2">
-              {{ t.title }}
+              <span class="truncate" :title="t.title">{{ t.title }}</span>
+              <span v-if="t.unreadMessageCount > 0" class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[10px] font-bold shadow-sm shrink-0">{{ t.unreadMessageCount }}</span>
               <span v-if="t.isRead === false" class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white animate-pulse shrink-0">NEW</span>
             </h4>
             <p class="text-sm text-gray-500 mb-3">{{ t.clientCompanyName }}</p>
+            <div v-if="t.assignments && t.assignments.length > 0" class="flex items-center gap-1 mb-3">
+              <span class="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-medium border border-blue-100 whitespace-nowrap">
+                {{ t.assignments[0].assignedToName.split(' ')[0] }}
+              </span>
+              <span v-if="t.assignments.length > 1" class="px-1.5 py-0.5 bg-gray-50 text-gray-600 rounded text-[9px] font-medium border border-gray-200 whitespace-nowrap">
+                +{{ t.assignments.length - 1 }}
+              </span>
+            </div>
             <div class="flex items-center justify-between">
               <div class="flex gap-2">
                 <PriorityBadge :priority="t.priority" />
@@ -152,92 +209,113 @@
 
         <form @submit.prevent="handleCreate" class="space-y-6">
           <!-- Maintenance, Priority, Product Type -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Jenis Maintenance *</label>
-              <select v-model="form.maintenanceType" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
-                <option value="">Pilih Jenis...</option>
-                <option value="PM">PM (Preventive Maintenance)</option>
-                <option value="CM">CM (Corrective Maintenance)</option>
-              </select>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Jenis Maintenance *</label>
+              <div class="relative">
+                <select v-model="form.maintenanceType" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer" required>
+                  <option value="">Pilih Jenis...</option>
+                  <option value="PM">PM (Preventive Maintenance)</option>
+                  <option value="CM">CM (Corrective Maintenance)</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Urgensi (Priority Level) *</label>
-              <select v-model="form.priority" @change="updateSLATargets" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
-                <option value="L1">Level 1 - Critical (System Down)</option>
-                <option value="L2">Level 2 - High (Major Error)</option>
-                <option value="L3">Level 3 - Medium (Normal)</option>
-                <option value="L4">Level 4 - Low (Consultation)</option>
-              </select>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Urgensi (Priority Level) *</label>
+              <div class="relative">
+                <select v-model="form.priority" @change="updateSLATargets" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer" required>
+                  <option value="L1">Level 1 - Critical (System Down)</option>
+                  <option value="L2">Level 2 - High (Major Error)</option>
+                  <option value="L3">Level 3 - Medium (Normal)</option>
+                  <option value="L4">Level 4 - Low (Consultation)</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Product Type</label>
-              <select v-model="form.productType" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">Pilih Product...</option>
-                <option value="OPENTEXT_CONTENT_SERVER">Opentext Content Server</option>
-                <option value="BRAVA_ENTERPRISE">Brava Enterprise</option>
-                <option value="OPENTEXT_DIRECTORY_SERVICES">Opentext Directory Services</option>
-                <option value="ARCHIVE_SERVER">Archive Server</option>
-                <option value="APPWORKS">AppWorks</option>
-                <option value="CUSTOM_APPS">Custom Apps</option>
-              </select>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Product Type</label>
+              <div class="relative">
+                <select v-model="form.productType" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                  <option value="">Pilih Product...</option>
+                  <option value="OPENTEXT_CONTENT_SERVER">Opentext Content Server</option>
+                  <option value="BRAVA_ENTERPRISE">Brava Enterprise</option>
+                  <option value="OPENTEXT_DIRECTORY_SERVICES">Opentext Directory Services</option>
+                  <option value="ARCHIVE_SERVER">Archive Server</option>
+                  <option value="APPWORKS">AppWorks</option>
+                  <option value="CUSTOM_APPS">Custom Apps</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
           <!-- SLA Target info -->
-          <div class="bg-blue-50 border border-blue-100 rounded-lg px-5 py-3 flex gap-8 text-sm">
+          <div class="bg-blue-50 border border-blue-100 rounded-xl px-5 py-3 flex gap-8 text-sm">
             <span class="text-blue-700">Target Respon: <strong class="text-blue-900">{{ slaTarget.response }}</strong></span>
             <span class="text-blue-700">Target Solusi: <strong class="text-blue-900">{{ slaTarget.resolution }}</strong></span>
           </div>
 
           <!-- Client & Requester -->
-          <div v-if="auth.isAdmin" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div v-if="auth.isAdmin" class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Client *</label>
-              <select v-model="form.clientId" @change="loadProjects" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
-                <option value="">Pilih Client...</option>
-                <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Project</label>
-              <select v-model="form.projectId" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">Pilih Project...</option>
-                <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.projectName }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Requester *</label>
-              <select v-model="form.requesterId" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white" required>
-                <option value="">Pilih Requester...</option>
-                <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
-              </select>
-            </div>
-          </div>
-          <div v-else class="space-y-4">
-            <div class="bg-gray-50 border border-gray-200 rounded-lg px-5 py-3">
-              <div class="grid grid-cols-2 gap-4">
-                <div><p class="text-xs text-gray-500">Client</p><p class="text-sm font-medium text-gray-900">{{ auth.user?.clientName || '-' }}</p></div>
-                <div><p class="text-xs text-gray-500">Requester</p><p class="text-sm font-medium text-gray-900">{{ auth.user?.name }}</p></div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Client *</label>
+              <div class="relative">
+                <select v-model="form.clientId" @change="loadProjects" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer" required>
+                  <option value="">Pilih Client...</option>
+                  <option v-for="c in activeClients" :key="c.id" :value="c.id">{{ c.companyName }}</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1.5">Project</label>
-              <select v-model="form.projectId" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
-                <option value="">Pilih Project...</option>
-                <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.projectName }}</option>
-              </select>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Project</label>
+              <div class="relative">
+                <select v-model="form.projectId" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                  <option value="">Pilih Project...</option>
+                  <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.projectName }}</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Requester *</label>
+              <div class="relative">
+                <select v-model="form.requesterId" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer" required>
+                  <option value="">Pilih Requester...</option>
+                  <option v-for="u in users" :key="u.id" :value="u.id">{{ u.name }}</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+          <div v-else class="space-y-6">
+            <div class="bg-gray-50/50 border border-gray-200 rounded-xl px-5 py-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div><p class="text-xs text-gray-500 mb-1">Client</p><p class="text-sm font-semibold text-gray-900">{{ auth.user?.clientName || '-' }}</p></div>
+                <div><p class="text-xs text-gray-500 mb-1">Requester</p><p class="text-sm font-semibold text-gray-900">{{ auth.user?.name }}</p></div>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Project</label>
+              <div class="relative">
+                <select v-model="form.projectId" class="w-full appearance-none bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer">
+                  <option value="">Pilih Project...</option>
+                  <option v-for="p in projects" :key="p.id" :value="p.id">{{ p.projectName }}</option>
+                </select>
+                <ChevronDown class="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Subjek Masalah *</label>
-            <input v-model="form.title" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Error Login pada Intelligent Capture" required />
+            <label class="block text-sm font-medium text-gray-700 mb-2">Subjek Masalah *</label>
+            <input v-model="form.title" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" placeholder="Contoh: Error Login pada Intelligent Capture" required />
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1.5">Deskripsi Detail *</label>
-            <textarea v-model="form.description" rows="5" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Jelaskan kendala yang dialami secara mendetail..." required></textarea>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi Detail *</label>
+            <textarea v-model="form.description" rows="5" class="w-full bg-gray-50/50 border border-gray-200 text-gray-900 rounded-xl px-4 py-3 transition-all focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" placeholder="Jelaskan kendala yang dialami secara mendetail..." required></textarea>
           </div>
 
           <!-- Lampiran -->
@@ -249,7 +327,7 @@
               <input ref="fileInput" type="file" class="hidden" multiple accept="image/*,.pdf,.log,.txt,.doc,.docx" @change="handleFileSelect" />
               <p v-if="attachments.length === 0" class="text-sm text-gray-500">Klik atau drag file untuk melampirkan screenshot atau log file (Max 5MB)</p>
               <div v-else class="space-y-2">
-                <div v-for="(file, index) in attachments" :key="index" class="flex items-center justify-between bg-white border border-gray-200 rounded-lg px-3 py-2">
+                <div v-for="(file, index) in attachments" :key="index" class="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-3 py-2">
                   <div class="flex items-center gap-2 min-w-0">
                     <Paperclip class="w-4 h-4 text-gray-400 shrink-0" />
                     <span class="text-sm text-gray-700 truncate">{{ file.name }}</span>
@@ -263,8 +341,8 @@
           </div>
 
           <div class="flex gap-4 pt-4">
-            <button type="button" @click="showForm = false" class="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 font-medium transition-colors">Batal</button>
-            <button type="submit" :disabled="loadingCreate" class="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2">
+            <button type="button" @click="showForm = false" class="flex-1 border border-gray-200 text-gray-700 py-3 rounded-xl hover:bg-gray-50 hover:border-gray-300 font-medium transition-colors">Batal</button>
+            <button type="submit" :disabled="loadingCreate" class="flex-1 bg-blue-600 text-white py-3 rounded-xl hover:bg-blue-700 font-medium transition-all shadow-sm hover:shadow-md hover:shadow-blue-600/20 disabled:opacity-50 flex items-center justify-center gap-2">
               <Loader2 v-if="loadingCreate" class="w-4 h-4 animate-spin" />
               {{ loadingCreate ? 'Mengirim...' : 'Kirim Tiket & Gunakan Kuota' }}
             </button>
@@ -272,12 +350,13 @@
         </form>
       </div>
     </div>
+    </transition>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, computed, onMounted, watch, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute, useRouter, onBeforeRouteLeave } from 'vue-router'
 import { getTickets, createTicket, exportTicketsCsv } from '../api/tickets'
 import { getClients } from '../api/clients'
 import { getUsers } from '../api/users'
@@ -287,7 +366,7 @@ import { useAuthStore } from '../stores/auth'
 import { useNotificationStore } from '../stores/notifications'
 import { useGlobalChat } from '../composables/useGlobalChat'
 import { useToastStore } from '../stores/toast'
-import { Search, Plus, X, Paperclip, FileDown, Loader2 } from 'lucide-vue-next'
+import { Search, Plus, X, Paperclip, FileDown, Loader2, ChevronDown } from 'lucide-vue-next'
 import StatusBadge from '../components/StatusBadge.vue'
 import PriorityBadge from '../components/PriorityBadge.vue'
 import ConfirmDialog from '../components/ConfirmDialog.vue'
@@ -486,4 +565,24 @@ function formatFileSize(bytes) {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 function formatDate(d) { return d ? new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-' }
+
+onBeforeRouteLeave(async (to, from, next) => {
+  const hasUnsavedInput = form.title.trim() !== '' || form.description.trim() !== '' || attachments.value.length > 0
+  if (showForm.value && hasUnsavedInput) {
+    const confirmed = await confirmDialog.value.open({
+      title: 'Batalkan Pembuatan Tiket?',
+      message: 'Anda memiliki data tiket yang belum disimpan. Jika Anda keluar halaman, semua isian akan hilang. Yakin ingin keluar?',
+      confirmLabel: 'Ya, Keluar & Buang',
+      confirmColor: 'red'
+    })
+    
+    if (confirmed) {
+      next()
+    } else {
+      next(false) // Batalkan navigasi
+    }
+  } else {
+    next()
+  }
+})
 </script>
